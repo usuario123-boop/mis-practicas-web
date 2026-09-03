@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UnachMx | Oferta Académica</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header__brand">
+      <span class="header__logo">🎓</span>
+      <div class="header__title">
+        <strong>UnachMx</strong>
+        <small>Universidad para toda la vida</small>
+      </div>
+    </div>
+
+    <nav class="header__nav">
+      <a href="#">Trámites</a>
+      <a href="#">Gobierno</a>
+      <a href="#">Más..</a>
+    </nav>
+
+    <button id="updateBtn" class="btn-update">
+      <span class="btn-update__icon">⟳</span> Actualizar Precios
+    </button>
+  </header>
+
+  <main class="main">
+    <h1 class="main__title">Cursos de capacitación</h1>
+    <p class="main__subtitle">Elige un curso y conoce su precio en distintas monedas</p>
+    <p id="statusMsg" class="status-msg"></p>
+
+    <section class="grid">
+
+      <!-- Curso 1 -->
+      <article class="card">
+        <div class="card__image-wrap">
+          <img class="card__image" src="https://images.unsplash.com/photo-1784073829327-76999d522e45?q=80&w=800&auto=format&fit=crop" alt="Inteligencia Artificial Generativa">
+
+        </div>
+        <div class="card__body">
+          <span class="card__tag">UV</span>
+          <h2 class="card__title">Inteligencia Artificial Generativa</h2>
+          <p class="card__duration">⏱ Duración: 20 horas</p>
+          <p class="card__desc">El curso "Inteligencia Artificial Generativa" ofrece una introducción integral a los modelos generativos y sus aplicaciones prácticas.</p>
+        </div>
+        <div class="card__prices">
+          <div class="price-box">
+            <span class="price-box__flag">🇲🇽</span>
+            <span class="price-box__label">PrecioMXN</span>
+            <span class="price-box__value" data-currency="mxn" data-base-mxn="1290.00">$1,290.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇺🇸</span>
+            <span class="price-box__label">PrecioUS</span>
+            <span class="price-box__value" data-currency="usd">$69.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇯🇵</span>
+            <span class="price-box__label">PrecioYen</span>
+            <span class="price-box__value" data-currency="jpy">¥7,500</span>
+          </div>
+        </div>
+        <div class="card__footer">
+          <button class="btn-enroll">Inscribirse</button>
+        </div>
+      </article>
+
+      <!-- Curso 2 -->
+      <article class="card">
+        <div class="card__image-wrap">
+          <img class="card__image" src="https://images.unsplash.com/photo-1757705760133-b39c479dc236?q=80&w=800&auto=format&fit=crop" alt="China, civilización y modernidad">
+
+        </div>
+        <div class="card__body">
+          <span class="card__tag">COLMEX</span>
+          <h2 class="card__title">China, civilización y modernidad</h2>
+          <p class="card__duration">⏱ Duración: 15 horas</p>
+          <p class="card__desc">La región de China, día con día, se está convirtiendo en un actor central del panorama económico y cultural mundial.</p>
+        </div>
+        <div class="card__prices">
+          <div class="price-box">
+            <span class="price-box__flag">🇲🇽</span>
+            <span class="price-box__label">PrecioMXN</span>
+            <span class="price-box__value" data-currency="mxn" data-base-mxn="990.00">$990.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇺🇸</span>
+            <span class="price-box__label">PrecioUS</span>
+            <span class="price-box__value" data-currency="usd">$55.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇯🇵</span>
+            <span class="price-box__label">PrecioYen</span>
+            <span class="price-box__value" data-currency="jpy">¥5,900</span>
+          </div>
+        </div>
+        <div class="card__footer">
+          <button class="btn-enroll">Inscribirse</button>
+        </div>
+      </article>
+
+      <!-- Curso 3 -->
+      <article class="card">
+        <div class="card__image-wrap">
+          <img class="card__image" src="https://images.unsplash.com/photo-1781246212288-7fa538344718?q=80&w=800&auto=format&fit=crop" alt="Emprendimiento con propósito">
+
+        </div>
+        <div class="card__body">
+          <span class="card__tag">UDG</span>
+          <h2 class="card__title">Emprendimiento con propósito: innovación y sostenibilidad</h2>
+          <p class="card__duration">⏱ Duración: 25 horas</p>
+          <p class="card__desc">En este curso abordarás el emprendimiento como una herramienta para generar valor social y ambiental.</p>
+        </div>
+        <div class="card__prices">
+          <div class="price-box">
+            <span class="price-box__flag">🇲🇽</span>
+            <span class="price-box__label">PrecioMXN</span>
+            <span class="price-box__value" data-currency="mxn" data-base-mxn="1490.00">$1,490.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇺🇸</span>
+            <span class="price-box__label">PrecioUS</span>
+            <span class="price-box__value" data-currency="usd">$79.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇯🇵</span>
+            <span class="price-box__label">PrecioYen</span>
+            <span class="price-box__value" data-currency="jpy">¥6,600</span>
+          </div>
+        </div>
+        <div class="card__footer">
+          <button class="btn-enroll">Inscribirse</button>
+        </div>
+      </article>
+
+      <!-- Curso 4 -->
+      <article class="card">
+        <div class="card__image-wrap">
+          <img class="card__image" src="https://images.unsplash.com/photo-1752697589029-0fd0ce96a395?q=80&w=800&auto=format&fit=crop" alt="Pilares legales y financieros">
+
+        </div>
+        <div class="card__body">
+          <span class="card__tag">UDG</span>
+          <h2 class="card__title">Pilares legales, financieros y marketing para emprender</h2>
+          <p class="card__duration">⏱ Duración: 18 horas</p>
+          <p class="card__desc">En este curso conocerás los pilares legales, financieros y de marketing necesarios para iniciar tu propio negocio.</p>
+        </div>
+        <div class="card__prices">
+          <div class="price-box">
+            <span class="price-box__flag">🇲🇽</span>
+            <span class="price-box__label">PrecioMXN</span>
+            <span class="price-box__value" data-currency="mxn" data-base-mxn="1190.00">$1,190.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇺🇸</span>
+            <span class="price-box__label">PrecioUS</span>
+            <span class="price-box__value" data-currency="usd">$65.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇯🇵</span>
+            <span class="price-box__label">PrecioYen</span>
+            <span class="price-box__value" data-currency="jpy">¥6,900</span>
+          </div>
+        </div>
+        <div class="card__footer">
+          <button class="btn-enroll">Inscribirse</button>
+        </div>
+      </article>
+
+      <!-- Curso 5 -->
+      <article class="card">
+        <div class="card__image-wrap">
+          <img class="card__image" src="https://images.unsplash.com/photo-1686061593213-98dad7c599b9?q=80&w=800&auto=format&fit=crop" alt="Marketing Digital para Emprendedores">
+
+        </div>
+        <div class="card__body">
+          <span class="card__tag">UNACH</span>
+          <h2 class="card__title">Marketing Digital para Emprendedores</h2>
+          <p class="card__duration">⏱ Duración: 16 horas</p>
+          <p class="card__desc">Aprende a construir una estrategia de marketing digital efectiva para posicionar tu marca o negocio.</p>
+        </div>
+        <div class="card__prices">
+          <div class="price-box">
+            <span class="price-box__flag">🇲🇽</span>
+            <span class="price-box__label">PrecioMXN</span>
+            <span class="price-box__value" data-currency="mxn" data-base-mxn="1090.00">$1,090.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇺🇸</span>
+            <span class="price-box__label">PrecioUS</span>
+            <span class="price-box__value" data-currency="usd">$59.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇯🇵</span>
+            <span class="price-box__label">PrecioYen</span>
+            <span class="price-box__value" data-currency="jpy">¥6,200</span>
+          </div>
+        </div>
+        <div class="card__footer">
+          <button class="btn-enroll">Inscribirse</button>
+        </div>
+      </article>
+
+      <!-- Curso 6 -->
+      <article class="card">
+        <div class="card__image-wrap">
+          <img class="card__image" src="https://images.unsplash.com/photo-1768839720936-87ce3adf2d08?q=80&w=800&auto=format&fit=crop" alt="Introducción a la Ciberseguridad">
+
+        </div>
+        <div class="card__body">
+          <span class="card__tag">UNACH</span>
+          <h2 class="card__title">Introducción a la Ciberseguridad</h2>
+          <p class="card__duration">⏱ Duración: 22 horas</p>
+          <p class="card__desc">Conoce los fundamentos de la seguridad informática y las mejores prácticas para proteger la información.</p>
+        </div>
+        <div class="card__prices">
+          <div class="price-box">
+            <span class="price-box__flag">🇲🇽</span>
+            <span class="price-box__label">PrecioMXN</span>
+            <span class="price-box__value" data-currency="mxn" data-base-mxn="1350.00">$1,350.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇺🇸</span>
+            <span class="price-box__label">PrecioUS</span>
+            <span class="price-box__value" data-currency="usd">$72.00</span>
+          </div>
+          <div class="price-box">
+            <span class="price-box__flag">🇯🇵</span>
+            <span class="price-box__label">PrecioYen</span>
+            <span class="price-box__value" data-currency="jpy">¥7,100</span>
+          </div>
+        </div>
+        <div class="card__footer">
+          <button class="btn-enroll">Inscribirse</button>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Fuente de referencia: GOBMX — <a href="https://saberes.gob.mx/catalog/courses" target="_blank" rel="noopener">saberes.gob.mx/catalog/courses</a></p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
