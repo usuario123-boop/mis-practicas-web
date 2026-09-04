@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universidad Autónoma de Chiapas</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #000;
+            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            padding: 12px 16px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            width: 100%;
+            min-height: calc(100vh - 24px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+        .card-box {
+            background-color: #eceae3;
+            border: 3.5px solid #b3732c;
+            border-radius: 18px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-left img {
+            height: 110px;
+            width: 220px;
+            object-fit: cover;
+            border-radius: 12px;
+            display: block;
+        }
+        .header-center {
+            text-align: center;
+            flex: 1;
+        }
+        .header-center h1 {
+            font-family: "Times New Roman", Georgia, serif;
+            font-size: 26px;
+            color: #9f6222;
+            margin-bottom: 4px;
+        }
+        .header-center p {
+            font-family: "Times New Roman", Georgia, serif;
+            font-style: italic;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        .search-container input, .form-group input, .form-group select {
+            padding: 4px 8px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            background: #fff;
+            outline: none;
+        }
+        .search-container input { width: 100px; }
+        .btn {
+            padding: 4px 12px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn:hover { background: #e0e0e0; }
+
+        /* Barra intermedia */
+        .middle-bar { min-height: 70px; }
+
+        /* Contenido Principal */
+        .main-layout {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-height: 380px;
+        }
+        .content-area {
+            flex: 3;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .teal-box {
+            width: 95px;
+            height: 95px;
+            background-color: #00bfa5;
+            border-radius: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar-column {
+            flex: 1;
+            min-width: 260px;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .panel-title {
+            font-family: "Times New Roman", Georgia, serif;
+            font-size: 17px;
+            color: #9f6222;
+            border-bottom: 2px solid #b3732c;
+            padding-bottom: 6px;
+        }
+        .sidebar-area {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            font-size: 14px;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        .form-group label { width: 75px; }
+        .form-group input, .form-group select { width: 110px; }
+        .btn-ejecutar { margin-left: 85px; align-self: flex-start; }
+        .resultado-box { font-weight: 500; margin-top: 6px; }
+        .resultado-valor { font-weight: bold; color: #9f6222; margin-left: 6px; }
+
+        /* Footer / Redes Sociales */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .social-title {
+            font-family: "Times New Roman", Georgia, serif;
+            font-weight: bold;
+            color: #9f6222;
+            font-size: 15px;
+        }
+        .social-links {
+            display: flex;
+            gap: 10px;
+        }
+        .social-link {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #b3732c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #222;
+            text-decoration: none;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .social-link svg { width: 16px; height: 16px; fill: currentColor; }
+        .social-link:hover { transform: translateY(-2px); color: #fff; }
+        .social-link.fb:hover { background: #1877f2; border-color: #1877f2; }
+        .social-link.tw:hover { background: #000; border-color: #000; }
+        .social-link.ig:hover { background: #dc2743; border-color: #dc2743; }
+        .social-link.yt:hover { background: #ff0000; border-color: #ff0000; }
+        .social-link.tk:hover { background: #000; border-color: #000; }
+        .social-link.wb:hover { background: #00bfa5; border-color: #00bfa5; }
+        .footer-copyright { font-size: 13px; color: #555; }
+
+        @media (max-width: 850px) {
+            .main-layout, header { flex-direction: column; text-align: center; }
+            .sidebar-column { max-width: 100%; }
+            .header-center { margin: 10px 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- CABECERA -->
+        <header class="card-box">
+            <div class="header-left">
+                <img src="UNACH.png" alt="Campus UNACH">
+            </div>
+
+            <div class="header-center">
+                <h1>Universidad Autónoma de Chiapas</h1>
+                <p>"Por la conciencia de la necesidad de servir"</p>
+            </div>
+
+            <form class="search-container" onsubmit="event.preventDefault();">
+                <label for="buscarInput">Buscar</label>
+                <input type="text" id="buscarInput" name="buscar">
+                <button type="submit" class="btn">Buscar</button>
+            </form>
+        </header>
+
+        <!-- BARRA INTERMEDIA -->
+        <div class="card-box middle-bar"></div>
+
+        <!-- CUERPO PRINCIPAL -->
+        <div class="main-layout">
+            <main class="card-box content-area">
+                <div class="teal-box"></div>
+                <div class="teal-box"></div>
+            </main>
+
+            <div class="sidebar-column">
+
+                <!-- FORMULARIO 1: OPERACIONES -->
+                <aside class="card-box sidebar-area">
+                    <h2 class="panel-title">Operaciones</h2>
+
+                    <div class="form-group">
+                        <label for="num1">Num1:</label>
+                        <input type="number" id="num1" placeholder="Dato ent" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="num2">Num2:</label>
+                        <input type="number" id="num2" placeholder="Dato ent" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="operacion">Operacion</label>
+                        <select id="operacion">
+                            <option value="multiplicacion">multiplicacion</option>
+                            <option value="suma">suma</option>
+                            <option value="resta">resta</option>
+                            <option value="division">division</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn btn-ejecutar" onclick="calcular()">Ejecutar</button>
+
+                    <div class="resultado-box">
+                        <span>Resultado:</span>
+                        <span id="resultado" class="resultado-valor"></span>
+                    </div>
+                </aside>
+
+                <!-- FORMULARIO 2: CONSULTA DE USUARIO -->
+                <aside class="card-box sidebar-area">
+                    <h2 class="panel-title">Consulta de usuario</h2>
+
+                    <div class="form-group">
+                        <label for="idUsuario">ID:</label>
+                        <input type="number" id="idUsuario" placeholder="1 - 10" min="1" max="10">
+                    </div>
+
+                    <button type="button" class="btn btn-ejecutar" id="btn1">Consultar</button>
+
+                    <div class="form-group">
+                        <label for="nom">Nombre:</label>
+                        <input type="text" id="nom" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="text" id="email" readonly>
+                    </div>
+                </aside>
+
+            </div>
+        </div>
+
+        <!-- REDES SOCIALES / FOOTER -->
+        <footer class="card-box">
+            <span class="social-title">Redes Sociales UNACH:</span>
+
+            <div class="social-links">
+                <a href="https://www.facebook.com/unach.mx" target="_blank" rel="noopener" class="social-link fb" title="Facebook">
+                    <svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07c0 6.03 4.39 11.02 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.03 1.79-4.7 4.53-4.7 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.5 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8v8.44C19.61 23.09 24 18.1 24 12.07z"/></svg>
+                </a>
+                <a href="https://twitter.com/UNACH_MX" target="_blank" rel="noopener" class="social-link tw" title="X (Twitter)">
+                    <svg viewBox="0 0 24 24"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24H16.17l-5.21-6.82L4.99 21.75H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z"/></svg>
+                </a>
+                <a href="https://www.instagram.com/unach.mx" target="_blank" rel="noopener" class="social-link ig" title="Instagram">
+                    <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.26.07 1.64.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85C2.38 3.86 3.9 2.31 7.15 2.23c1.27-.06 1.65-.07 4.85-.07zm0 3.68a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"/></svg>
+                </a>
+                <a href="https://www.youtube.com/user/UNACHmx" target="_blank" rel="noopener" class="social-link yt" title="YouTube">
+                    <svg viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5a3.02 3.02 0 0 0-2.12 2.14C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg>
+                </a>
+                <a href="https://www.tiktok.com/@unach.mx" target="_blank" rel="noopener" class="social-link tk" title="TikTok">
+                    <svg viewBox="0 0 24 24"><path d="M12.53.02c1.31 0 2.61 0 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03a6.85 6.85 0 0 1-5.82-1.9v8.75c-.08 1.4-.54 2.79-1.35 3.94A6.74 6.74 0 0 1 5.35 24c-1.43.08-2.86-.31-4.08-1.03a6.83 6.83 0 0 1-2.58-4.96c.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72v4.44a2.9 2.9 0 0 0-3.02.37 2.9 2.9 0 0 0-.25 3.36 2.9 2.9 0 0 0 3.24-2.24c.23-.58.32-1.22.31-1.85V.02h2.83z"/></svg>
+                </a>
+                <a href="https://www.unach.mx" target="_blank" rel="noopener" class="social-link wb" title="Portal Oficial">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                </a>
+            </div>
+
+            <div class="footer-copyright">© Universidad Autónoma de Chiapas</div>
+        </footer>
+
+    </div>
+
+    <!-- Script de cálculo -->
+    <script>
+        function calcular() {
+            const a = parseFloat(document.getElementById('num1').value);
+            const b = parseFloat(document.getElementById('num2').value);
+            const op = document.getElementById('operacion').value;
+            const resEl = document.getElementById('resultado');
+
+            if (isNaN(a) || isNaN(b)) {
+                resEl.textContent = 'Ingrese datos';
+                return;
+            }
+
+            const ops = {
+                multiplicacion: a * b,
+                suma: a + b,
+                resta: a - b,
+                division: b === 0 ? 'Error (Div/0)' : a / b
+            };
+
+            const res = ops[op];
+            resEl.textContent = typeof res === 'number' ? (Number.isInteger(res) ? res : res.toFixed(2)) : res;
+        }
+    </script>
+    <!-- jQuery (necesario para el formulario de consulta) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Script de consulta a la API (jsonplaceholder) -->
+    <script>
+        $(document).ready(function () {
+
+            $('#btn1').click(function () {
+
+                var id = $('#idUsuario').val();
+
+                if (id === '') {
+                    alert('Ingrese un ID (del 1 al 10)');
+                    return;
+                }
+
+                $.get(
+                    'https://jsonplaceholder.typicode.com/users/' + id,
+                    function (data) {
+                        console.log(data);
+
+                        $('#nom').val(data.name);
+                        $('#email').val(data.email);
+                    }
+                ).fail(function () {
+                    $('#nom').val('');
+                    $('#email').val('');
+                    alert('No se encontró el usuario con ID ' + id);
+                });
+
+            });
+
+        });
+    </script>
+</body>
+</html>
