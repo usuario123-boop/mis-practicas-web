@@ -1,16 +1,159 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Prácticas Web</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis Prácticas Web</title>
+<style>
+  :root{
+    --bg:#eaf2fd;
+    --bg-2:#d8e8fb;
+    --card:#ffffff;
+    --border:#c9dcf5;
+    --border-hover:#7fb0ee;
+    --text:#152a45;
+    --muted:#5b7794;
+    --blue:#2f7de1;
+    --blue-deep:#1b5fbb;
+    --sky:#5eb6f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 520px at 8% -10%, #ffffff, transparent 62%),
+      radial-gradient(760px 480px at 100% 4%, #c5e2fa, transparent 60%),
+      linear-gradient(160deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:52px 20px;
+  }
+  .wrap{width:100%;max-width:900px}
+
+  header.hero{text-align:center;margin-bottom:42px}
+  .hero__badge{
+    display:inline-block;
+    font-size:.74rem;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--blue-deep);
+    background:#ffffffcc;
+    border:1px solid var(--border);
+    padding:6px 15px;
+    border-radius:999px;
+    margin-bottom:18px;
+  }
+  .hero h1{
+    font-size:clamp(1.9rem,5vw,2.9rem);
+    line-height:1.15;
+    letter-spacing:-.02em;
+    margin-bottom:12px;
+  }
+  .hero h1 span{
+    background:linear-gradient(90deg,var(--blue),var(--sky));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p{color:var(--muted);font-size:1.02rem;max-width:520px;margin:0 auto}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:22px;
+  }
+
+  .card{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:26px 24px;
+    text-decoration:none;
+    color:inherit;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 4px 14px rgba(35,86,150,.10);
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:0 0 auto 0;
+    height:4px;
+    background:linear-gradient(90deg,var(--blue),var(--sky));
+    opacity:0;
+    transition:opacity .18s ease;
+  }
+  .card:hover,.card:focus-visible{
+    transform:translateY(-5px);
+    border-color:var(--border-hover);
+    box-shadow:0 14px 30px rgba(35,86,150,.20);
+    outline:none;
+  }
+  .card:hover::before,.card:focus-visible::before{opacity:1}
+
+  .card__num{
+    width:46px;height:46px;
+    display:grid;place-items:center;
+    border-radius:14px;
+    background:linear-gradient(140deg,#e8f2ff,#cfe4fb);
+    border:1px solid var(--border);
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--blue-deep);
+  }
+  .card__title{font-size:1.22rem;font-weight:650}
+  .card__desc{color:var(--muted);font-size:.94rem;line-height:1.55;flex:1}
+  .card__go{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:.88rem;
+    font-weight:650;
+    color:var(--blue);
+    margin-top:4px;
+  }
+  .card__go .arrow{transition:transform .18s ease;display:inline-block}
+  .card:hover .card__go .arrow{transform:translateX(5px)}
+
+</style>
 </head>
 <body>
-    <h1>Portafolio de Prácticas Web</h1>
-    <hr>
-    <ul>
-        <li><a href="./pract1/">Práctica 1</a></li>
-        <li><a href="./pract2/">Práctica 2</a></li>
-    </ul>
+  <div class="wrap">
+
+    <header class="hero">
+      <span class="hero__badge">Portafolio</span>
+      <h1>Mis <span>Prácticas Web</span></h1>
+      <p>Selecciona una práctica para abrirla.</p>
+    </header>
+
+    <main class="grid">
+
+      <a class="card" href="./pract1/">
+        <div class="card__num">1</div>
+        <h2 class="card__title">Práctica 1</h2>
+        <p class="card__desc">Universidad Autónoma de Chiapas</p>
+        <span class="card__go">Abrir práctica <span class="arrow">&rarr;</span></span>
+      </a>
+
+      <a class="card" href="./pract2/">
+        <div class="card__num">2</div>
+        <h2 class="card__title">Práctica 2</h2>
+        <p class="card__desc">Universidad Autónoma de Chiapas</p>
+        <span class="card__go">Abrir práctica <span class="arrow">&rarr;</span></span>
+      </a>
+
+    </main>
+
+
+  </div>
 </body>
 </html>
