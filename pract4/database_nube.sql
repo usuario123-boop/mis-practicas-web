@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS documentos (
     archivo_pdf     VARCHAR(255)  NOT NULL,
     archivo_nombre  VARCHAR(255)  DEFAULT NULL,
     archivo_tam     INT           DEFAULT 0,
-    github_url      VARCHAR(500)  DEFAULT NULL,
+    -- El PDF se guarda aquí mismo: en Vercel el disco es de solo lectura y
+    -- cualquier archivo escrito en /tmp se pierde al terminar la petición.
+    archivo_datos   LONGBLOB      DEFAULT NULL,
     creado_en       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

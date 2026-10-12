@@ -77,14 +77,6 @@ $documentos = $documentos ?? [];
                                     </a>
                                 </li>
                             <?php endforeach; ?>
-                            <?php if (!empty($doc['github_url'])): ?>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item small" href="<?= e($doc['github_url']) ?>" target="_blank" rel="noopener">
-                                        <i class="bi bi-github me-2"></i>Ver respaldo en GitHub
-                                    </a>
-                                </li>
-                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>

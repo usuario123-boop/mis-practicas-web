@@ -5,7 +5,7 @@ $esEdicion = ($vista === 'editar');
 $doc = [
     'id' => 0, 'no_oficio' => '', 'fecha' => date('Y-m-d'), 'asunto' => '',
     'remitente' => '', 'destinatario' => '', 'estatus' => 'Recibido',
-    'archivo_nombre' => '', 'archivo_tam' => 0, 'github_url' => null,
+    'archivo_nombre' => '', 'archivo_tam' => 0,
 ];
 
 if ($esEdicion) {
@@ -173,12 +173,8 @@ if ($esEdicion) {
 
                     <small class="text-muted d-block mt-2">
                         Formatos aceptados: PDF o fotografía JPG. Tamaño máximo: <?= tamanoLegible(MAX_PDF_BYTES) ?>.
-                        <?php if (GH_ACTIVO): ?>
-                            <br><i class="bi bi-github"></i>
-                            <?= ALMACEN_EFIMERO
-                                ? 'El archivo se almacenará en el repositorio de GitHub.'
-                                : 'El archivo también se respaldará automáticamente en el repositorio de GitHub.' ?>
-                        <?php endif; ?>
+                        <br><i class="bi bi-database"></i>
+                        La fotografía se convierte a PDF y el archivo queda guardado en la base de datos.
                     </small>
                 </div>
 

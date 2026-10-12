@@ -5,7 +5,6 @@
 require_once __DIR__ . '/../conexion.php';
 require_once __DIR__ . '/../includes/funciones.php';
 require_once __DIR__ . '/../includes/consultas.php';
-require_once __DIR__ . '/../includes/github.php';
 require_once __DIR__ . '/../includes/pdf.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -53,8 +52,10 @@ if ($esEdicion && !$anterior) {
 $archivoNombre = $anterior['archivo_nombre'] ?? null;
 $archivoRuta   = $anterior['archivo_pdf']    ?? null;
 $archivoTam    = (int) ($anterior['archivo_tam'] ?? 0);
-$githubUrl     = $anterior['github_url']     ?? null;
-$avisoGithub   = '';
+
+// Queda en null cuando se edita sin reemplazar el documento: en ese caso las
+// columnas del archivo no se tocan y el PDF anterior se conserva.
+$contenido = null;
 
 // Se acepta el archivo de cualquiera de los dos inputs (cámara o selector).
 $subido      = null;
@@ -89,13 +90,6 @@ if ($subido === null && !$esEdicion) {
 
 if ($subido !== null) {
 
-    // En Vercel el disco se borra al terminar la petición: sin GitHub el PDF
-    // quedaría registrado en la base pero no existiría en ningún lado.
-    if (ALMACEN_EFIMERO && !GH_ACTIVO) {
-        flash('danger', 'Falta configurar la variable <code>GITHUB_TOKEN</code>: sin ella no hay dónde almacenar el PDF.');
-        redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
-    }
-
     if ($subido['size'] > MAX_PDF_BYTES) {
         flash('danger', 'El archivo supera el límite de ' . tamanoLegible(MAX_PDF_BYTES) . '.');
         redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
@@ -108,91 +102,81 @@ if ($subido !== null) {
         redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
     }
 
-    if (!is_dir(DIR_PDF)) {
-        mkdir(DIR_PDF, 0775, true);
-    }
-
     // Nombre único y seguro: fecha + aleatorio + número de oficio normalizado.
+    // Ya no nombra ningún archivo en disco, pero sigue identificando al documento
+    // y es el nombre con el que se descarga.
     $base = preg_replace('/[^A-Za-z0-9_-]/', '_', $no_oficio);
     $nuevoNombre = date('Ymd_His') . '_' . substr(bin2hex(random_bytes(3)), 0, 6) . '_' . $base . '.pdf';
-    $rutaDestino = DIR_PDF . DIRECTORY_SEPARATOR . $nuevoNombre;
 
     if ($tipoReal === 'application/pdf') {
-        $guardado = move_uploaded_file($subido['tmp_name'], $rutaDestino);
+        $contenido = file_get_contents($subido['tmp_name']);
     } else {
         // Fotografía: se incrusta en un PDF de una página antes de almacenarla.
-        $guardado = imagenJpegAPdf($subido['tmp_name'], $rutaDestino);
+        // La conversión escribe en un archivo, así que se usa uno temporal que
+        // se descarta en cuanto el PDF está en memoria.
+        $temporal  = tempnam(sys_get_temp_dir(), 'pdf');
+        $contenido = imagenJpegAPdf($subido['tmp_name'], $temporal)
+            ? file_get_contents($temporal)
+            : false;
+        @unlink($temporal);
     }
 
-    if (!$guardado) {
-        $motivo = ALMACEN_EFIMERO
-            ? 'No fue posible preparar el archivo en el servidor.'
-            : 'No fue posible guardar el archivo. Revisa los permisos de la carpeta pdf/.';
-        flash('danger', $motivo);
+    if ($contenido === false || $contenido === '') {
+        flash('danger', 'No fue posible preparar el archivo PDF.');
         redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
     }
 
-    // Se elimina el archivo anterior para no dejar basura acumulada.
-    if ($esEdicion && $archivoNombre) {
-        $viejo = DIR_PDF . DIRECTORY_SEPARATOR . $archivoNombre;
-        if (is_file($viejo)) unlink($viejo);
-    }
-
     $archivoNombre = $nuevoNombre;
-    $archivoRuta   = 'pdf/' . $nuevoNombre;
-    $archivoTam    = (int) filesize($rutaDestino);
-
-    if (GH_ACTIVO) {
-        $respaldo = githubSubirArchivo(
-            $rutaDestino,
-            $nuevoNombre,
-            'Documento ' . $no_oficio . ' (' . $fecha . ') — respaldo automático desde la aplicación'
-        );
-        if ($respaldo['ok']) {
-            $githubUrl   = $respaldo['url'];
-            $avisoGithub = ' Archivo almacenado en GitHub.';
-        } elseif (ALMACEN_EFIMERO) {
-            @unlink($rutaDestino);
-            flash('danger', 'El documento no se guardó porque falló la subida a GitHub: ' . e($respaldo['detalle']));
-            redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
-        } else {
-            $avisoGithub = ' (El respaldo en GitHub no se completó: ' . e($respaldo['detalle']) . ')';
-        }
-    }
+    $archivoRuta   = $nuevoNombre;
+    $archivoTam    = strlen($contenido);
 }
 
 if ($esEdicion) {
 
-    $sql = 'UPDATE documentos
-               SET no_oficio = ?, fecha = ?, asunto = ?, remitente = ?, destinatario = ?,
-                   estatus = ?, archivo_pdf = ?, archivo_nombre = ?, archivo_tam = ?, github_url = ?
-             WHERE id = ?';
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param(
-        'ssssssssisi',
-        $no_oficio, $fecha, $asunto, $remitente, $destinatario,
-        $estatus, $archivoRuta, $archivoNombre, $archivoTam, $githubUrl, $id
-    );
+    if ($contenido !== null) {
+        $sql = 'UPDATE documentos
+                   SET no_oficio = ?, fecha = ?, asunto = ?, remitente = ?, destinatario = ?,
+                       estatus = ?, archivo_pdf = ?, archivo_nombre = ?, archivo_tam = ?,
+                       archivo_datos = ?
+                 WHERE id = ?';
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param(
+            'ssssssssisi',
+            $no_oficio, $fecha, $asunto, $remitente, $destinatario,
+            $estatus, $archivoRuta, $archivoNombre, $archivoTam, $contenido, $id
+        );
+    } else {
+        // Sin documento nuevo: solo cambian los datos del oficio.
+        $sql = 'UPDATE documentos
+                   SET no_oficio = ?, fecha = ?, asunto = ?, remitente = ?, destinatario = ?,
+                       estatus = ?
+                 WHERE id = ?';
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param(
+            'ssssssi',
+            $no_oficio, $fecha, $asunto, $remitente, $destinatario, $estatus, $id
+        );
+    }
     $stmt->execute();
     $stmt->close();
 
     registrarBitacora($conexion, $id, 'Documento actualizado',
         'Se modificaron los datos del oficio ' . $no_oficio . '.');
 
-    flash('success', 'El documento <strong>' . e($no_oficio) . '</strong> se actualizó correctamente.' . $avisoGithub);
+    flash('success', 'El documento <strong>' . e($no_oficio) . '</strong> se actualizó correctamente.');
     redirigir('../index.php?vista=documentos');
 
 } else {
 
     $sql = 'INSERT INTO documentos
                 (no_oficio, fecha, asunto, remitente, destinatario, estatus,
-                 archivo_pdf, archivo_nombre, archivo_tam, github_url)
+                 archivo_pdf, archivo_nombre, archivo_tam, archivo_datos)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     $stmt = $conexion->prepare($sql);
     $stmt->bind_param(
         'ssssssssis',
         $no_oficio, $fecha, $asunto, $remitente, $destinatario,
-        $estatus, $archivoRuta, $archivoNombre, $archivoTam, $githubUrl
+        $estatus, $archivoRuta, $archivoNombre, $archivoTam, $contenido
     );
     $stmt->execute();
     $nuevoId = $stmt->insert_id;
@@ -201,6 +185,6 @@ if ($esEdicion) {
     registrarBitacora($conexion, $nuevoId, 'Documento registrado',
         'Alta del oficio ' . $no_oficio . ' con estatus "' . $estatus . '".');
 
-    flash('success', 'El documento <strong>' . e($no_oficio) . '</strong> se registró correctamente.' . $avisoGithub);
+    flash('success', 'El documento <strong>' . e($no_oficio) . '</strong> se registró correctamente.');
     redirigir('../index.php?vista=documentos');
 }

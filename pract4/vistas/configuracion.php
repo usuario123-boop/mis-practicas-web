@@ -1,7 +1,5 @@
 <?php
-// Diagnóstico del entorno: base de datos, almacenamiento y respaldo en GitHub.
-
-require_once __DIR__ . '/../includes/github.php';
+// Diagnóstico del entorno: base de datos, almacenamiento y extensiones de PHP.
 
 $tablas = [];
 $res = $conexion->query('SHOW TABLES');
@@ -12,30 +10,18 @@ foreach ($tablas as $t) {
     $conteos[$t] = (int) $conexion->query("SELECT COUNT(*) AS c FROM `$t`")->fetch_assoc()['c'];
 }
 
-$estadoGh = githubEstado();
+// Los PDF viven en la propia tabla, así que el inventario sale de una consulta
+// en lugar de leer una carpeta.
+$resumen = $conexion->query(
+    'SELECT COUNT(*) AS n, COALESCE(SUM(archivo_tam), 0) AS peso
+       FROM documentos WHERE archivo_datos IS NOT NULL')->fetch_assoc();
 
-// En Vercel el inventario real vive en GitHub; en XAMPP, en la carpeta pdf/.
-if (ALMACEN_EFIMERO) {
-    $archivos  = githubListarArchivos();
-    $pesoTotal = array_sum(array_column($archivos, 'tam'));
-    $almacenOk = $estadoGh['ok'];
-    $almacenDetalle = $almacenOk
-        ? count($archivos) . ' archivo(s) en GitHub · ' . tamanoLegible($pesoTotal)
-        . '. El disco de Vercel es temporal, por eso los PDF se guardan en el repositorio.'
-        : 'En Vercel los PDF se almacenan en GitHub, pero el repositorio no está accesible.';
-} else {
-    $carpetaExiste  = is_dir(DIR_PDF);
-    $almacenOk      = $carpetaExiste && is_writable(DIR_PDF);
-    $archivos  = $carpetaExiste ? array_filter(scandir(DIR_PDF), fn($f) => str_ends_with(strtolower($f), '.pdf')) : [];
-    $pesoTotal = 0;
-    foreach ($archivos as $a) $pesoTotal += filesize(DIR_PDF . DIRECTORY_SEPARATOR . $a);
-    $almacenDetalle = $almacenOk
-        ? count($archivos) . ' archivo(s) guardados · ' . tamanoLegible($pesoTotal) . ' en total.'
-        : 'La carpeta pdf/ no existe o no tiene permisos de escritura.';
-}
+$almacenOk = true;
+$almacenDetalle = (int) $resumen['n'] . ' archivo(s) guardados · '
+    . tamanoLegible((int) $resumen['peso']) . ' en total, dentro de la base de datos.';
 
 $faltantes = array_values(array_filter(
-    ['mysqli', 'curl', 'fileinfo', 'openssl'],
+    ['mysqli', 'fileinfo', 'openssl'],
     fn($ext) => !extension_loaded($ext)
 ));
 
@@ -79,43 +65,31 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
                 );
 
                 filaEstado(
-                    ALMACEN_EFIMERO ? 'Almacenamiento de PDF (GitHub)' : 'Almacenamiento de archivos PDF',
+                    'Almacenamiento de archivos PDF',
                     $almacenOk,
                     $almacenDetalle
-                );
-
-                filaEstado(
-                    ALMACEN_EFIMERO ? 'Conexión con el repositorio' : 'Respaldo versionado en GitHub',
-                    $estadoGh['ok'],
-                    $estadoGh['detalle']
                 );
 
                 filaEstado(
                     'Extensiones de PHP',
                     empty($faltantes),
                     empty($faltantes)
-                        ? 'mysqli, curl, fileinfo y openssl están disponibles.'
+                        ? 'mysqli, fileinfo y openssl están disponibles.'
                         : 'Faltan: ' . implode(', ', $faltantes) . '.'
                 );
                 ?>
             </ul>
 
-            <?php if (!$estadoGh['ok']): ?>
-                <div class="alert alert-light border small mt-3 mb-0">
-                    <strong><i class="bi bi-info-circle me-1"></i>Cómo configurar el almacenamiento en GitHub</strong>
-                    <ol class="mb-0 mt-2 ps-3">
-                        <li>Genera un token personal en GitHub con permiso de escritura sobre el repositorio.</li>
-                        <li>Define las variables <code>GITHUB_TOKEN</code>, <code>GITHUB_REPO</code>,
-                            <code>GITHUB_BRANCH</code> y <code>GITHUB_PATH</code>.</li>
-                        <li>Usa una rama aparte (por ejemplo <code>archivos</code>) en
-                            <code>GITHUB_BRANCH</code>: si los PDF se suben a <code>main</code>,
-                            cada documento registrado dispara un despliegue nuevo en Vercel.</li>
-                        <li>En local puedes agregarlas al archivo <code>php.ini</code> o al
-                            <code>httpd.conf</code> de XAMPP con <code>SetEnv</code>;
-                            en Vercel se capturan en <em>Settings &rarr; Environment Variables</em>.</li>
-                    </ol>
-                </div>
-            <?php endif; ?>
+            <div class="alert alert-light border small mt-3 mb-0">
+                <strong><i class="bi bi-info-circle me-1"></i>Dónde se guardan los PDF</strong>
+                <p class="mb-0 mt-2">
+                    Cada documento se almacena en la columna <code>archivo_datos</code> de la
+                    tabla <code>documentos</code>, junto con sus datos. Así la aplicación se
+                    comporta igual en XAMPP y en Vercel, donde el disco es de solo lectura y
+                    cualquier archivo escrito se perdería al terminar la petición. Al borrar
+                    un documento su PDF desaparece con él, sin dejar archivos huérfanos.
+                </p>
+            </div>
         </div>
     </div>
 

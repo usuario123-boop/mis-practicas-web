@@ -36,13 +36,6 @@
             </li>
         <?php endforeach; ?>
         <li><hr class="dropdown-divider"></li>
-        <?php if (!empty($doc['github_url'])): ?>
-            <li>
-                <a class="dropdown-item small" href="<?= e($doc['github_url']) ?>" target="_blank" rel="noopener">
-                    <i class="bi bi-github me-2"></i>Ver respaldo en GitHub
-                </a>
-            </li>
-        <?php endif; ?>
         <li>
             <a class="dropdown-item small text-danger eliminar-doc" href="#"
                data-id="<?= (int) $doc['id'] ?>" data-oficio="<?= e($doc['no_oficio']) ?>">

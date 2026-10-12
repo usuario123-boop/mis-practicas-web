@@ -2,6 +2,13 @@
 // Consultas a la base de datos. Los filtros llegan de la URL, así que todas van
 // con sentencias preparadas.
 
+// El PDF vive en la columna archivo_datos, que puede pesar megabytes. Ninguna
+// consulta de listado debe tocarla, así que se enumeran las demás columnas en
+// lugar de usar SELECT *.
+const COLUMNAS_DOCUMENTO = 'id, no_oficio, fecha, asunto, remitente, destinatario,
+                            estatus, archivo_pdf, archivo_nombre, archivo_tam,
+                            creado_en, actualizado_en';
+
 // Devuelve la cláusula WHERE junto con los tipos y valores para bind_param.
 function filtrosDocumentos(array $f): array
 {
@@ -67,7 +74,8 @@ function listarDocumentos(mysqli $conexion, array $filtros, int $limite, int $de
     $orderBy = $ordenamientos[$orden] ?? $ordenamientos['fecha_desc'];
 
     $w     = filtrosDocumentos($filtros);
-    $sql   = "SELECT * FROM documentos {$w['sql']} ORDER BY {$orderBy} LIMIT ? OFFSET ?";
+    $sql   = "SELECT " . COLUMNAS_DOCUMENTO . " FROM documentos {$w['sql']}
+              ORDER BY {$orderBy} LIMIT ? OFFSET ?";
     $tipos = $w['tipos'] . 'ii';
     $vals  = array_merge($w['valores'], [$limite, $desplazamiento]);
 
@@ -82,12 +90,26 @@ function listarDocumentos(mysqli $conexion, array $filtros, int $limite, int $de
 
 function obtenerDocumento(mysqli $conexion, int $id): ?array
 {
-    $stmt = $conexion->prepare('SELECT * FROM documentos WHERE id = ? LIMIT 1');
+    $stmt = $conexion->prepare('SELECT ' . COLUMNAS_DOCUMENTO . ' FROM documentos WHERE id = ? LIMIT 1');
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $fila = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     return $fila ?: null;
+}
+
+// El PDF se pide aparte y solo cuando hay que entregarlo, para que los listados
+// no arrastren megabytes por cada renglón.
+function obtenerArchivoPdf(mysqli $conexion, int $id): ?array
+{
+    $stmt = $conexion->prepare(
+        'SELECT archivo_nombre, archivo_tam, archivo_datos FROM documentos WHERE id = ? LIMIT 1');
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $fila = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return ($fila && $fila['archivo_datos'] !== null) ? $fila : null;
 }
 
 function resumenEstatus(mysqli $conexion): array

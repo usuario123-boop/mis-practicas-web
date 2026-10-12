@@ -23,12 +23,9 @@ define('DB_NAME', env('DB_NAME', 'gestion_documentos'));
 // Los proveedores de MySQL en la nube exigen TLS; en XAMPP se deja apagado.
 define('DB_SSL',  filter_var(env('DB_SSL', EN_VERCEL ? '1' : '0'), FILTER_VALIDATE_BOOL));
 
-// Archivos PDF. En Vercel solo /tmp acepta escritura y su contenido se pierde
-// al terminar la petición, por eso ahí GitHub deja de ser respaldo y pasa a ser
-// el almacenamiento real.
-define('DIR_PDF', env('DIR_PDF', EN_VERCEL
-    ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'pdf'
-    : __DIR__ . DIRECTORY_SEPARATOR . 'pdf'));
+// Los PDF se guardan dentro de MySQL, en la columna documentos.archivo_datos.
+// Así la aplicación se comporta igual en XAMPP y en Vercel, donde el disco es
+// de solo lectura y lo que se escriba en /tmp se pierde al terminar la petición.
 define('ALMACEN_EFIMERO', EN_VERCEL);
 
 // Convierte valores de php.ini como "8M" o "512K" a bytes.
@@ -53,14 +50,6 @@ define('MAX_PDF_BYTES', min(
     bytesIni('upload_max_filesize'),
     bytesIni('post_max_size')
 ));
-
-// Respaldo de los PDF en GitHub. Sin GITHUB_TOKEN la función queda desactivada
-// y la aplicación trabaja solo con el almacenamiento local.
-define('GH_TOKEN',  env('GITHUB_TOKEN', ''));
-define('GH_REPO',   env('GITHUB_REPO', 'usuario123-boop/mis-practicas-web'));
-define('GH_BRANCH', env('GITHUB_BRANCH', 'main'));
-define('GH_RUTA',   env('GITHUB_PATH', 'pract4/pdf'));
-define('GH_ACTIVO', GH_TOKEN !== '');
 
 define('APP_NOMBRE', 'UNACH · Gestión de Documentos');
 define('POR_PAGINA', (int) env('POR_PAGINA', 5));

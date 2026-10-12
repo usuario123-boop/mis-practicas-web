@@ -1,13 +1,11 @@
 <?php
 // Entrega el PDF de un documento al iframe de la ventana modal.
-// La carpeta pdf/ nunca se enlaza directamente: todo pasa por aquí, que valida
-// el id y controla las cabeceras. Si el archivo no está en el servidor se
-// recupera del respaldo de GitHub.
+// El archivo se guarda dentro de la base de datos, así que no hay ninguna ruta
+// pública que enlazar: todo pasa por aquí, que valida el id y fija las cabeceras.
 
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/includes/funciones.php';
 require_once __DIR__ . '/includes/consultas.php';
-require_once __DIR__ . '/includes/github.php';
 
 // Mensaje de error legible dentro del visor.
 function errorVisor(string $mensaje, int $codigo = 404): void
@@ -29,8 +27,11 @@ if (!$doc) {
     errorVisor('El documento solicitado no existe en la base de datos.');
 }
 
-$nombre = $doc['archivo_nombre'] ?: basename($doc['archivo_pdf']);
-$ruta   = DIR_PDF . DIRECTORY_SEPARATOR . $nombre;
+$archivo = obtenerArchivoPdf($conexion, $id);
+
+if ($archivo === null) {
+    errorVisor('Este documento no tiene ningún archivo PDF almacenado.');
+}
 
 // Nombre amigable para el navegador y para la descarga.
 $nombreVisible = 'Oficio_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $doc['no_oficio']) . '.pdf';
@@ -44,25 +45,5 @@ header('Content-Disposition: ' . $disposicion . '; filename="' . $nombreVisible 
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: private, max-age=600');
 
-if (is_file($ruta)) {
-    header('Content-Length: ' . filesize($ruta));
-    readfile($ruta);
-    exit;
-}
-
-// No está en disco: se trae del almacenamiento remoto.
-$binario = githubDescargarArchivo($nombre);
-if ($binario !== null) {
-    // Copia local para que las siguientes peticiones no vuelvan a la API.
-    if (is_dir(DIR_PDF) || @mkdir(DIR_PDF, 0775, true)) {
-        @file_put_contents($ruta, $binario);
-    }
-    header('Content-Length: ' . strlen($binario));
-    echo $binario;
-    exit;
-}
-
-// Se quitan las cabeceras de PDF antes de mostrar el aviso en HTML.
-header_remove('Content-Type');
-header_remove('Content-Disposition');
-errorVisor('El archivo PDF no se encuentra en el servidor ni en el almacenamiento de GitHub.');
+header('Content-Length: ' . strlen($archivo['archivo_datos']));
+echo $archivo['archivo_datos'];
