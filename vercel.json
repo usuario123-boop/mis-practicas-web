@@ -1,13 +1,26 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/pract4/**/*.php": {
-      "runtime": "vercel-php@0.9.0"
+  "builds": [
+    {
+      "src": "pract4/**/*.php",
+      "use": "vercel-php@0.9.0"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pract1/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pract2/**/*",
+      "use": "@vercel/static"
     }
-  },
-  "rewrites": [
-    { "source": "/pract4", "destination": "/api/pract4/index.php" },
-    { "source": "/pract4/", "destination": "/api/pract4/index.php" },
-    { "source": "/pract4/(.*)", "destination": "/api/pract4/$1" }
+  ],
+  "routes": [
+    { "src": "/pract4", "dest": "/pract4/index.php" },
+    { "src": "/pract4/", "dest": "/pract4/index.php" },
+    { "src": "/pract4/(.*)", "dest": "/pract4/$1" }
   ]
 }
