@@ -61,9 +61,32 @@ $documentos = $documentos ?? [];
                         <div class="fw-bold"><?= e($doc['no_oficio']) ?></div>
                         <small class="text-muted"><?= fechaLocal($doc['fecha']) ?></small>
                     </div>
-                    <span class="badge-status <?= claseEstatus($doc['estatus']) ?>" id="estatus-m-<?= (int) $doc['id'] ?>">
-                        <?= e($doc['estatus']) ?>
-                    </span>
+                    <div class="dropdown">
+                        <button class="badge-status <?= claseEstatus($doc['estatus']) ?> border-0"
+                                id="estatus-m-<?= (int) $doc['id'] ?>"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <?= e($doc['estatus']) ?> <i class="bi bi-chevron-down ms-1" style="font-size:.65rem"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                            <li><h6 class="dropdown-header">Cambiar estatus</h6></li>
+                            <?php foreach (estatusValidos() as $opcion): ?>
+                                <li>
+                                    <a class="dropdown-item small cambiar-estatus <?= $doc['estatus'] === $opcion ? 'active' : '' ?>"
+                                       href="#" data-id="<?= (int) $doc['id'] ?>" data-estatus="<?= e($opcion) ?>">
+                                        <span class="badge-status <?= claseEstatus($opcion) ?>" style="font-size:.7rem"><?= e($opcion) ?></span>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                            <?php if (!empty($doc['github_url'])): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item small" href="<?= e($doc['github_url']) ?>" target="_blank" rel="noopener">
+                                        <i class="bi bi-github me-2"></i>Ver respaldo en GitHub
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
                 </div>
 
                 <p class="mt-2 mb-2 small fw-semibold"><?= e($doc['asunto']) ?></p>

@@ -129,9 +129,9 @@ if ($esEdicion) {
                         resultante se convierte a PDF en el servidor.
                     -->
                     <input type="file" class="d-none" id="entradaCamara" name="archivo_camara"
-                           accept="image/*" capture="environment">
+                           accept="image/jpeg" capture="environment">
                     <input type="file" class="d-none" id="entradaArchivo" name="archivo_pdf"
-                           accept="application/pdf,image/*">
+                           accept="application/pdf,image/jpeg">
 
                     <!-- Vista previa del archivo elegido -->
                     <div id="cajaPrevia" class="mt-3 d-none p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center">
@@ -171,7 +171,7 @@ if ($esEdicion) {
                     <?php endif; ?>
 
                     <small class="text-muted d-block mt-2">
-                        Formatos aceptados: PDF, JPG o PNG. Tamaño máximo: 10 MB.
+                        Formatos aceptados: PDF o fotografía JPG. Tamaño máximo: 10 MB.
                         <?php if (GH_ACTIVO): ?>
                             <br><i class="bi bi-github"></i> El archivo también se respaldará automáticamente en el repositorio de GitHub.
                         <?php endif; ?>

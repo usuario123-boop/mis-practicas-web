@@ -1,5 +1,17 @@
 $(function () {
 
+    // Los menús ⋮ viven dentro de .table-responsive, que al tener overflow recorta
+    // lo que se sale. Con la estrategia fixed de Popper se posicionan respecto a la
+    // ventana y dejan de cortarse.
+    $('[data-bs-toggle="dropdown"]').each(function () {
+        bootstrap.Dropdown.getOrCreateInstance(this, {
+            popperConfig: function (config) {
+                config.strategy = 'fixed';
+                return config;
+            }
+        });
+    });
+
     // Cada botón abre su propio input: uno la cámara, otro el selector de archivos.
     $('#btnCamara').on('click', function () { $('#entradaCamara').trigger('click'); });
     $('#btnArchivo').on('click', function () { $('#entradaArchivo').trigger('click'); });
@@ -94,8 +106,8 @@ $(function () {
         var $opcion  = $(this);
         var id       = $opcion.data('id');
         var estatus  = $opcion.data('estatus');
-        var $badge   = $('#estatus-' + id);
-        var textoOrig = $badge.text();
+        var $badge   = $('#estatus-' + id + ', #estatus-m-' + id);
+        var textoOrig = $badge.first().text();
 
         $badge.text('…');
 
@@ -106,6 +118,8 @@ $(function () {
                         .removeClass('status-recibido status-proceso status-atendido')
                         .addClass(res.clase)
                         .text(res.estatus);
+                    $opcion.closest('.dropdown-menu').find('.cambiar-estatus')
+                        .removeClass('active').filter('[data-estatus="' + res.estatus + '"]').addClass('active');
                     notificar('Estatus actualizado a “' + res.estatus + '”.', 'success');
                 } else {
                     $badge.text(textoOrig);
