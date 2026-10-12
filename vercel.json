@@ -2,25 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [
     {
-      "src": "pract4/**/*.php",
-      "use": "vercel-php@0.9.0"
+      "src": "api/index.php",
+      "use": "vercel-php@0.9.0",
+      "config": { "includeFiles": "**" }
     },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "pract1/**/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "pract2/**/*",
-      "use": "@vercel/static"
-    }
+    { "src": "index.html",         "use": "@vercel/static" },
+    { "src": "pract1/**",          "use": "@vercel/static" },
+    { "src": "pract2/**",          "use": "@vercel/static" },
+    { "src": "pract4/assets/**",   "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/pract4", "dest": "/pract4/index.php" },
-    { "src": "/pract4/", "dest": "/pract4/index.php" },
-    { "src": "/pract4/(.*)", "dest": "/pract4/$1" }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/api/index.php" }
   ]
 }
