@@ -1,0 +1,8 @@
+# Archivos locales que no deben versionarse
+desktop.ini
+Thumbs.db
+.DS_Store
+*.log
+
+# Credenciales
+.env
