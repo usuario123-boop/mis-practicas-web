@@ -1,7 +1,6 @@
 <?php
 // Pie: barra inferior en móvil, ventanas modales compartidas y scripts.
 ?>
-?>
         </main>
     </div>
 </div>
