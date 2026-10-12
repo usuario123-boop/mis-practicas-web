@@ -224,9 +224,3 @@ que ofrecen MySQL gratuito):
 |10 | Rechazo de peticiones sin token CSRF válido (HTTP 403)     | Correcto  |
 |11 | Navegación responsiva en móvil, tableta y escritorio       | Correcto  |
 
----
-
-## 11. Documentación adicional
-
-El reporte técnico completo (solución, arquitectura, modelo de datos, funcionalidades,
-pruebas y conclusiones) está en [`REPORTE_TECNICO.md`](REPORTE_TECNICO.md).
