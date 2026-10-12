@@ -1,13 +1,8 @@
 <?php
-/**
- * vistas/configuracion.php
- * Diagnóstico del entorno: estado de la base de datos, del almacenamiento de
- * archivos y del respaldo en GitHub. Útil para verificar la instalación.
- */
+// Diagnóstico del entorno: base de datos, almacenamiento y respaldo en GitHub.
 
 require_once __DIR__ . '/../includes/github.php';
 
-// --- Base de datos ----------------------------------------------------------
 $tablas = [];
 $res = $conexion->query('SHOW TABLES');
 while ($fila = $res->fetch_array(MYSQLI_NUM)) $tablas[] = $fila[0];
@@ -17,17 +12,14 @@ foreach ($tablas as $t) {
     $conteos[$t] = (int) $conexion->query("SELECT COUNT(*) AS c FROM `$t`")->fetch_assoc()['c'];
 }
 
-// --- Almacenamiento ---------------------------------------------------------
 $carpetaExiste    = is_dir(DIR_PDF);
 $carpetaEscribible = $carpetaExiste && is_writable(DIR_PDF);
 $archivos = $carpetaExiste ? array_filter(scandir(DIR_PDF), fn($f) => str_ends_with(strtolower($f), '.pdf')) : [];
 $pesoTotal = 0;
 foreach ($archivos as $a) $pesoTotal += filesize(DIR_PDF . DIRECTORY_SEPARATOR . $a);
 
-// --- GitHub -----------------------------------------------------------------
 $estadoGh = githubEstado();
 
-// --- Servidor ---------------------------------------------------------------
 $datosServidor = [
     'Versión de PHP'            => PHP_VERSION,
     'Servidor web'              => $_SERVER['SERVER_SOFTWARE'] ?? 'desconocido',
@@ -54,7 +46,6 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
 
 <div class="row g-3">
 
-    <!-- ============ Estado general ============ -->
     <div class="col-12 col-xl-7">
         <div class="main-card h-100">
             <h6 class="fw-bold mb-3">Estado de los componentes</h6>
@@ -98,7 +89,6 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
         </div>
     </div>
 
-    <!-- ============ Datos del servidor ============ -->
     <div class="col-12 col-xl-5">
         <div class="main-card h-100">
             <h6 class="fw-bold mb-3">Entorno de ejecución</h6>
@@ -115,7 +105,6 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
         </div>
     </div>
 
-    <!-- ============ Contenido de las tablas ============ -->
     <div class="col-12">
         <div class="main-card">
             <h6 class="fw-bold mb-3">Contenido de la base de datos</h6>

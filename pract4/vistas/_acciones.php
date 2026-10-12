@@ -1,9 +1,5 @@
 <?php
-/**
- * vistas/_acciones.php
- * Botones de la columna "Acciones" de la tabla de escritorio.
- * Variable esperada: $doc (fila del documento).
- */
+// Botones de la columna Acciones. Espera $doc.
 ?>
 <!-- Ver: abre el PDF en una ventana modal sobre la misma página -->
 <button type="button" class="btn-accion ver-pdf"

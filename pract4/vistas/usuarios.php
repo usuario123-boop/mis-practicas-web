@@ -1,8 +1,5 @@
 <?php
-/**
- * vistas/usuarios.php
- * Catálogo del personal que opera la plataforma (alta, activación y baja).
- */
+// Catálogo del personal que opera la plataforma.
 
 $usuarios = $conexion->query('SELECT * FROM usuarios ORDER BY rol ASC, nombre ASC')
                      ->fetch_all(MYSQLI_ASSOC);
@@ -12,7 +9,6 @@ $roles = ['Administrador', 'Capturista', 'Consulta'];
 
 <div class="row g-3">
 
-    <!-- ============ Alta de usuario ============ -->
     <div class="col-12 col-xl-4">
         <div class="main-card">
             <h6 class="fw-bold mb-3"><i class="bi bi-person-plus text-primary me-2"></i>Registrar usuario</h6>
@@ -57,7 +53,6 @@ $roles = ['Administrador', 'Capturista', 'Consulta'];
         </div>
     </div>
 
-    <!-- ============ Listado de usuarios ============ -->
     <div class="col-12 col-xl-8">
         <div class="main-card">
             <div class="d-flex justify-content-between align-items-center mb-3">

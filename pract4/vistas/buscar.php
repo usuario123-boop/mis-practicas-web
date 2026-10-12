@@ -1,10 +1,5 @@
 <?php
-/**
- * vistas/buscar.php
- * Búsqueda avanzada: combina texto libre con filtros por estatus, remitente
- * y rango de fechas. A diferencia del listado, aquí no hay paginación: se
- * muestran todas las coincidencias para facilitar la consulta puntual.
- */
+// Búsqueda avanzada: texto libre + remitente + estatus + rango de fechas.
 
 $seBuscó = isset($_GET['enviado']);
 

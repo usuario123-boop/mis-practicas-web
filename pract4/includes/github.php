@@ -1,24 +1,9 @@
 <?php
-/**
- * includes/github.php
- * Respaldo de los documentos PDF en el repositorio de GitHub.
- *
- * Requisito del laboratorio: además de guardar el PDF en el servidor, el archivo
- * se envía al repositorio usando la API REST de GitHub (Contents API), de modo
- * que quede versionado junto con el código.
- *
- * Se activa únicamente cuando existe la variable de entorno GITHUB_TOKEN.
- * Si no está configurada, la aplicación sigue funcionando con el almacenamiento
- * local y simplemente no se realiza el respaldo.
- */
+// Respaldo de los PDF en el repositorio mediante la Contents API de GitHub.
+// Solo se activa si existe la variable de entorno GITHUB_TOKEN.
 
 require_once __DIR__ . '/../config.php';
 
-/**
- * Ejecuta una petición contra la API de GitHub.
- *
- * @return array{codigo:int, cuerpo:array|null, error:string|null}
- */
 function githubPeticion(string $metodo, string $ruta, ?array $datos = null): array
 {
     $ch = curl_init('https://api.github.com' . $ruta);
@@ -51,14 +36,6 @@ function githubPeticion(string $metodo, string $ruta, ?array $datos = null): arr
     ];
 }
 
-/**
- * Sube (o actualiza) un archivo en el repositorio configurado.
- *
- * @param string $rutaLocal  Archivo que se va a enviar.
- * @param string $nombre     Nombre con el que se guardará dentro de GITHUB_PATH.
- * @param string $mensaje    Mensaje del commit.
- * @return array{ok:bool, url:?string, detalle:string}
- */
 function githubSubirArchivo(string $rutaLocal, string $nombre, string $mensaje): array
 {
     if (!GH_ACTIVO) {
@@ -69,9 +46,9 @@ function githubSubirArchivo(string $rutaLocal, string $nombre, string $mensaje):
     }
 
     $rutaRepo = trim(GH_RUTA, '/') . '/' . $nombre;
-    $endpoint = '/repos/' . GH_REPO . '/contents/' . rawurlencode_ruta($rutaRepo);
+    $endpoint = '/repos/' . GH_REPO . '/contents/' . rutaCodificada($rutaRepo);
 
-    // Si el archivo ya existe se necesita su SHA para poder reemplazarlo.
+    // Para reemplazar un archivo existente hay que mandar su sha.
     $existente = githubPeticion('GET', $endpoint . '?ref=' . urlencode(GH_BRANCH));
     $sha = ($existente['codigo'] === 200 && isset($existente['cuerpo']['sha']))
         ? $existente['cuerpo']['sha']
@@ -102,13 +79,12 @@ function githubSubirArchivo(string $rutaLocal, string $nombre, string $mensaje):
     ];
 }
 
-/** Elimina un archivo del repositorio (se usa al borrar un documento). */
 function githubEliminarArchivo(string $nombre, string $mensaje): bool
 {
     if (!GH_ACTIVO) return false;
 
     $rutaRepo = trim(GH_RUTA, '/') . '/' . $nombre;
-    $endpoint = '/repos/' . GH_REPO . '/contents/' . rawurlencode_ruta($rutaRepo);
+    $endpoint = '/repos/' . GH_REPO . '/contents/' . rutaCodificada($rutaRepo);
 
     $existente = githubPeticion('GET', $endpoint . '?ref=' . urlencode(GH_BRANCH));
     if ($existente['codigo'] !== 200 || empty($existente['cuerpo']['sha'])) return false;
@@ -122,17 +98,13 @@ function githubEliminarArchivo(string $nombre, string $mensaje): bool
     return $resultado['codigo'] === 200;
 }
 
-/**
- * Descarga el contenido binario de un archivo respaldado en GitHub.
- * Sirve como respaldo cuando el servidor no conserva los archivos subidos
- * (por ejemplo, el sistema de archivos efímero de Vercel).
- */
+// Se usa cuando el archivo ya no está en el servidor y hay que traerlo del respaldo.
 function githubDescargarArchivo(string $nombre): ?string
 {
     if (!GH_ACTIVO) return null;
 
     $rutaRepo = trim(GH_RUTA, '/') . '/' . $nombre;
-    $endpoint = '/repos/' . GH_REPO . '/contents/' . rawurlencode_ruta($rutaRepo)
+    $endpoint = '/repos/' . GH_REPO . '/contents/' . rutaCodificada($rutaRepo)
               . '?ref=' . urlencode(GH_BRANCH);
 
     $resultado = githubPeticion('GET', $endpoint);
@@ -142,13 +114,12 @@ function githubDescargarArchivo(string $nombre): ?string
     return $binario !== false ? $binario : null;
 }
 
-/** Codifica cada segmento de una ruta sin escapar las diagonales. */
-function rawurlencode_ruta(string $ruta): string
+// Codifica cada segmento de la ruta sin escapar las diagonales.
+function rutaCodificada(string $ruta): string
 {
     return implode('/', array_map('rawurlencode', explode('/', $ruta)));
 }
 
-/** Comprueba que el token y el repositorio configurados sean accesibles. */
 function githubEstado(): array
 {
     if (!GH_ACTIVO) {

@@ -1,9 +1,5 @@
 <?php
-/**
- * vistas/reportes.php
- * Estadísticas de la gestión documental y exportación a CSV.
- * Las gráficas se dibujan con CSS puro para no depender de librerías externas.
- */
+// Estadísticas y exportación a CSV. Las gráficas son CSS puro, sin librerías.
 
 $resumen     = resumenEstatus($conexion);
 $porMes      = documentosPorMes($conexion, 6);
@@ -42,7 +38,6 @@ $promedio = count($porMes) > 0
 
 <div class="row g-3">
 
-    <!-- ============ Documentos por mes ============ -->
     <div class="col-12 col-xl-7">
         <div class="main-card h-100">
             <h6 class="fw-bold mb-1">Documentos recibidos por mes</h6>
@@ -67,7 +62,6 @@ $promedio = count($porMes) > 0
         </div>
     </div>
 
-    <!-- ============ Estatus ============ -->
     <div class="col-12 col-xl-5">
         <div class="main-card h-100">
             <h6 class="fw-bold mb-1">Estado del seguimiento</h6>
@@ -101,7 +95,6 @@ $promedio = count($porMes) > 0
         </div>
     </div>
 
-    <!-- ============ Remitentes frecuentes ============ -->
     <div class="col-12">
         <div class="main-card">
             <h6 class="fw-bold mb-1">Remitentes más frecuentes</h6>

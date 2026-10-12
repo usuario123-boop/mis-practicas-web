@@ -1,9 +1,5 @@
 <?php
-/**
- * vistas/formulario.php
- * Alta y edición de documentos. El mismo formulario sirve para ambos casos:
- * en modo edición se precargan los datos y el archivo PDF deja de ser obligatorio.
- */
+// Alta y edición. En edición se precargan los datos y el PDF deja de ser obligatorio.
 
 $esEdicion = ($vista === 'editar');
 $doc = [
@@ -105,7 +101,6 @@ if ($esEdicion) {
                     </select>
                 </div>
 
-                <!-- ============ Digitalización: cámara o archivo ============ -->
                 <div class="mb-4">
                     <label class="form-label small fw-bold">
                         Documento (foto o PDF)

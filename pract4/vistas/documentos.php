@@ -1,8 +1,5 @@
 <?php
-/**
- * vistas/documentos.php
- * Listado de documentos con buscador, filtros, ordenamiento y paginación.
- */
+// Listado con buscador, filtros, ordenamiento y paginación.
 
 $filtros = [
     'buscar'  => trim($_GET['buscar'] ?? ''),
@@ -12,7 +9,6 @@ $filtros = [
 ];
 $orden = $_GET['orden'] ?? 'fecha_desc';
 
-// --- Paginación -------------------------------------------------------------
 $total     = contarDocumentos($conexion, $filtros);
 $paginas   = max(1, (int) ceil($total / POR_PAGINA));
 $pagina    = max(1, min($paginas, (int) ($_GET['pagina'] ?? 1)));
@@ -35,7 +31,6 @@ $ultimo  = min($desde + POR_PAGINA, $total);
         </a>
     </div>
 
-    <!-- ===================== Buscador y filtros ===================== -->
     <form method="GET" action="index.php" class="row g-2 mb-4">
         <input type="hidden" name="vista" value="documentos">
 
@@ -109,10 +104,8 @@ $ultimo  = min($desde + POR_PAGINA, $total);
         </div>
     <?php endif; ?>
 
-    <!-- ===================== Resultados ===================== -->
     <?php require __DIR__ . '/_tabla.php'; ?>
 
-    <!-- ===================== Paginación ===================== -->
     <?php if ($total > 0): ?>
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
             <small class="text-muted">

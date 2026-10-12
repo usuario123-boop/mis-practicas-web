@@ -1,8 +1,5 @@
 <?php
-/**
- * acciones/usuarios.php
- * Operaciones del catálogo de usuarios: alta, activación/desactivación y baja.
- */
+// Alta, activación/desactivación y baja de usuarios.
 
 require_once __DIR__ . '/../conexion.php';
 require_once __DIR__ . '/../includes/funciones.php';
@@ -16,7 +13,6 @@ $operacion = $_POST['operacion'] ?? '';
 
 switch ($operacion) {
 
-    // ---------------------------------------------------------------- alta --
     case 'crear':
         $nombre = trim($_POST['nombre'] ?? '');
         $correo = trim($_POST['correo'] ?? '');
@@ -47,7 +43,6 @@ switch ($operacion) {
         $stmt->close();
         break;
 
-    // ------------------------------------------- activar / desactivar --------
     case 'alternar':
         $id   = (int) ($_POST['id'] ?? 0);
         $stmt = $conexion->prepare('UPDATE usuarios SET activo = 1 - activo WHERE id = ?');
@@ -57,7 +52,6 @@ switch ($operacion) {
         flash('success', 'El estado del usuario se actualizó.');
         break;
 
-    // ---------------------------------------------------------------- baja --
     case 'eliminar':
         $id   = (int) ($_POST['id'] ?? 0);
         $stmt = $conexion->prepare('DELETE FROM usuarios WHERE id = ?');

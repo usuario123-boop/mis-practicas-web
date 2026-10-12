@@ -1,8 +1,5 @@
 <?php
-/**
- * vistas/inicio.php
- * Panel de control: indicadores generales, últimos documentos y actividad.
- */
+// Panel de control: indicadores, últimos documentos y actividad.
 
 $resumen     = resumenEstatus($conexion);
 $recientes   = listarDocumentos($conexion, [], 5, 0, 'fecha_desc');
@@ -31,7 +28,6 @@ $indicadores = [
     </a>
 </div>
 
-<!-- ===================== Indicadores ===================== -->
 <div class="row g-3 mb-4">
     <?php foreach ($indicadores as [$titulo, $valor, $icono, $clase]): ?>
         <div class="col-6 col-xl-3">
@@ -48,7 +44,6 @@ $indicadores = [
 
 <div class="row g-3">
 
-    <!-- ===================== Documentos recientes ===================== -->
     <div class="col-12 col-xl-8">
         <div class="main-card h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -59,7 +54,6 @@ $indicadores = [
         </div>
     </div>
 
-    <!-- ===================== Resumen lateral ===================== -->
     <div class="col-12 col-xl-4">
 
         <div class="main-card mb-3">

@@ -1,13 +1,7 @@
 <?php
-/**
- * vistas/_tabla.php
- * Fragmento reutilizable: muestra una colección de documentos.
- *
- * En escritorio se dibuja como tabla y en móvil como tarjetas apiladas,
- * porque una tabla de siete columnas resulta ilegible en una pantalla pequeña.
- *
- * Variables esperadas: $documentos (array de filas).
- */
+// Fragmento reutilizable. En escritorio se dibuja como tabla y en móvil como
+// tarjetas, porque siete columnas no caben en la pantalla de un teléfono.
+// Espera $documentos.
 
 $documentos = $documentos ?? [];
 ?>
@@ -24,7 +18,6 @@ $documentos = $documentos ?? [];
 
 <?php else: ?>
 
-    <!-- ===================== Vista de tabla (escritorio) ===================== -->
     <div class="table-responsive d-none d-lg-block">
         <table class="table align-middle tabla-docs mb-0">
             <thead>
@@ -60,7 +53,6 @@ $documentos = $documentos ?? [];
         </table>
     </div>
 
-    <!-- ================ Vista de tarjetas (móvil y tableta) ================ -->
     <div class="d-lg-none">
         <?php foreach ($documentos as $doc): ?>
             <article class="doc-card">

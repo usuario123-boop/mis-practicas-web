@@ -1,13 +1,9 @@
 <?php
-/**
- * includes/header.php
- * Cabecera común: <head>, barra superior y menú lateral.
- * Espera la variable $vista (sección activa) definida en index.php.
- */
+// Cabecera: <head>, barra superior y menús. Recibe $vista desde index.php.
 
 $vista = $vista ?? 'inicio';
 
-/** Secciones del menú: clave => [etiqueta, icono de Bootstrap Icons] */
+// clave => [etiqueta, icono]
 $menu = [
     'inicio'        => ['Inicio',           'bi-house-door'],
     'documentos'    => ['Documentos',       'bi-file-earmark-text'],
@@ -18,7 +14,7 @@ $menu = [
     'configuracion' => ['Configuración',    'bi-gear'],
 ];
 
-/** Imprime los enlaces del menú (se reutiliza en escritorio y en móvil). */
+// Se usa dos veces: en el menú lateral y en el deslizable.
 function pintarMenu(array $menu, string $vista): void
 {
     foreach ($menu as $clave => [$etiqueta, $icono]) {
@@ -43,7 +39,6 @@ function pintarMenu(array $menu, string $vista): void
 </head>
 <body>
 
-<!-- ======================= Barra superior ======================= -->
 <nav class="navbar-unach px-3 py-2">
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-3">
@@ -80,7 +75,6 @@ function pintarMenu(array $menu, string $vista): void
     </div>
 </nav>
 
-<!-- ============== Menú deslizable (solo móvil y tableta) ============== -->
 <div class="offcanvas offcanvas-start offcanvas-unach" tabindex="-1" id="menuMovil">
     <div class="offcanvas-header border-bottom border-secondary">
         <h6 class="offcanvas-title fw-bold mb-0">Menú</h6>
@@ -94,12 +88,10 @@ function pintarMenu(array $menu, string $vista): void
 <div class="container-fluid">
     <div class="row">
 
-        <!-- ================== Menú lateral (escritorio) ================== -->
         <aside class="col-lg-2 d-none d-lg-block sidebar p-0">
             <div class="nav flex-column mt-3"><?php pintarMenu($menu, $vista); ?></div>
         </aside>
 
-        <!-- ===================== Contenido principal ===================== -->
         <main class="col-12 col-lg-10 p-3 p-md-4">
 
             <?php if ($flash = obtenerFlash()): ?>

@@ -1,10 +1,5 @@
 <?php
-/**
- * acciones/estatus.php
- * Cambia el estatus de un documento y responde en JSON.
- * Se invoca por AJAX desde el listado, así el usuario actualiza el seguimiento
- * sin recargar la página.
- */
+// Cambio de estatus desde el listado. Responde JSON porque se llama por AJAX.
 
 require_once __DIR__ . '/../conexion.php';
 require_once __DIR__ . '/../includes/funciones.php';
@@ -12,7 +7,6 @@ require_once __DIR__ . '/../includes/consultas.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-/** Devuelve una respuesta JSON y termina. */
 function responder(array $datos): void
 {
     echo json_encode($datos, JSON_UNESCAPED_UNICODE);

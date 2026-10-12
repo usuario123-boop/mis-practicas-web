@@ -1,16 +1,8 @@
 <?php
-/**
- * includes/consultas.php
- * Consultas a la base de datos. Todas usan sentencias preparadas para evitar
- * inyección SQL (los filtros llegan directamente de la URL).
- */
+// Consultas a la base de datos. Los filtros llegan de la URL, así que todas van
+// con sentencias preparadas.
 
-/**
- * Arma la cláusula WHERE y los parámetros a partir de los filtros recibidos.
- *
- * @param array $f  ['buscar','estatus','desde','hasta','remitente']
- * @return array{sql:string, tipos:string, valores:array}
- */
+// Devuelve la cláusula WHERE junto con los tipos y valores para bind_param.
 function filtrosDocumentos(array $f): array
 {
     $condiciones = ['1=1'];
@@ -51,7 +43,6 @@ function filtrosDocumentos(array $f): array
     ];
 }
 
-/** Cuenta cuántos documentos cumplen los filtros (para la paginación). */
 function contarDocumentos(mysqli $conexion, array $filtros): int
 {
     $w    = filtrosDocumentos($filtros);
@@ -63,10 +54,9 @@ function contarDocumentos(mysqli $conexion, array $filtros): int
     return $total;
 }
 
-/** Devuelve una página de documentos aplicando filtros y ordenamiento. */
 function listarDocumentos(mysqli $conexion, array $filtros, int $limite, int $desplazamiento, string $orden = 'fecha_desc'): array
 {
-    // Lista blanca de ordenamientos: nunca se concatena texto del usuario.
+    // El ORDER BY no se puede parametrizar, así que se elige de una lista fija.
     $ordenamientos = [
         'fecha_desc'  => 'fecha DESC, id DESC',
         'fecha_asc'   => 'fecha ASC, id ASC',
@@ -90,7 +80,6 @@ function listarDocumentos(mysqli $conexion, array $filtros, int $limite, int $de
     return $filas;
 }
 
-/** Recupera un documento por su identificador. */
 function obtenerDocumento(mysqli $conexion, int $id): ?array
 {
     $stmt = $conexion->prepare('SELECT * FROM documentos WHERE id = ? LIMIT 1');
@@ -101,7 +90,6 @@ function obtenerDocumento(mysqli $conexion, int $id): ?array
     return $fila ?: null;
 }
 
-/** Totales por estatus más el total general. Alimenta el panel y los reportes. */
 function resumenEstatus(mysqli $conexion): array
 {
     $resumen = ['Recibido' => 0, 'En proceso' => 0, 'Atendido' => 0, 'Total' => 0];
@@ -114,7 +102,6 @@ function resumenEstatus(mysqli $conexion): array
     return $resumen;
 }
 
-/** Documentos registrados por mes durante los últimos N meses. */
 function documentosPorMes(mysqli $conexion, int $meses = 6): array
 {
     $sql = "SELECT DATE_FORMAT(fecha, '%Y-%m') AS periodo, COUNT(*) AS total
@@ -130,7 +117,6 @@ function documentosPorMes(mysqli $conexion, int $meses = 6): array
     return $filas;
 }
 
-/** Remitentes que más documentos han enviado. */
 function remitentesFrecuentes(mysqli $conexion, int $limite = 5): array
 {
     $stmt = $conexion->prepare(
@@ -144,10 +130,9 @@ function remitentesFrecuentes(mysqli $conexion, int $limite = 5): array
     return $filas;
 }
 
-/** Valores distintos de una columna, para llenar los <select> de filtros. */
+// Alimenta los <select> y <datalist> de los formularios.
 function valoresDistintos(mysqli $conexion, string $columna): array
 {
-    // Solo se aceptan columnas conocidas: la lista blanca evita inyección SQL.
     if (!in_array($columna, ['remitente', 'destinatario'], true)) return [];
 
     $res    = $conexion->query("SELECT DISTINCT $columna AS v FROM documentos ORDER BY v ASC");
@@ -156,7 +141,6 @@ function valoresDistintos(mysqli $conexion, string $columna): array
     return $salida;
 }
 
-/** Registra un movimiento en la bitácora de un documento. */
 function registrarBitacora(mysqli $conexion, int $documentoId, string $accion, string $detalle = ''): void
 {
     $stmt = $conexion->prepare('INSERT INTO bitacora (documento_id, accion, detalle) VALUES (?, ?, ?)');
@@ -165,7 +149,6 @@ function registrarBitacora(mysqli $conexion, int $documentoId, string $accion, s
     $stmt->close();
 }
 
-/** Últimos movimientos registrados en todo el sistema. */
 function ultimosMovimientos(mysqli $conexion, int $limite = 8): array
 {
     $stmt = $conexion->prepare(

@@ -1,14 +1,11 @@
 <?php
-/**
- * includes/footer.php
- * Pie común: barra inferior móvil, ventanas modales compartidas y scripts.
- */
+// Pie: barra inferior en móvil, ventanas modales compartidas y scripts.
+?>
 ?>
         </main>
     </div>
 </div>
 
-<!-- ============ Barra de navegación inferior (solo móvil) ============ -->
 <nav class="bottom-nav d-lg-none">
     <a href="index.php?vista=inicio" class="bottom-nav-item <?= $vista === 'inicio' ? 'active' : '' ?>">
         <i class="bi bi-house-door"></i><span>Inicio</span>
@@ -28,7 +25,6 @@
     </a>
 </nav>
 
-<!-- ======= Visor de PDF: se abre encima de la página, sin cambiar de vista ======= -->
 <div class="modal fade modal-visor" id="modalVisor" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down">
         <div class="modal-content border-0 rounded-4 overflow-hidden">
@@ -54,7 +50,6 @@
     </div>
 </div>
 
-<!-- ===================== Confirmación de eliminación ===================== -->
 <div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4">

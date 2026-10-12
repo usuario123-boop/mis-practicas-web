@@ -1,15 +1,6 @@
-/* ===========================================================================
-   UNACH · Sistema de Gestión de Documentos
-   Lógica de interfaz con jQuery.
-   =========================================================================== */
-
 $(function () {
 
-    /* -------------------------------------------------------------------
-       1. Digitalización: cámara y selección de archivo
-       Los dos botones apuntan a inputs distintos. El de cámara usa el
-       atributo capture para abrir directamente la cámara en el móvil.
-       ------------------------------------------------------------------- */
+    // Cada botón abre su propio input: uno la cámara, otro el selector de archivos.
     $('#btnCamara').on('click', function () { $('#entradaCamara').trigger('click'); });
     $('#btnArchivo').on('click', function () { $('#entradaArchivo').trigger('click'); });
 
@@ -20,7 +11,6 @@ $(function () {
 
     var MAX_BYTES = 10 * 1024 * 1024;   // debe coincidir con MAX_PDF_BYTES de config.php
 
-    /** Muestra el archivo elegido y lo valida antes de enviarlo. */
     function mostrarArchivo(archivo, origen) {
         if (!archivo) return;
 
@@ -42,7 +32,6 @@ $(function () {
         $('#avisoArchivo').addClass('d-none');
     }
 
-    /** Vacía los dos inputs y oculta la vista previa. */
     function limpiarArchivo() {
         $('#entradaArchivo, #entradaCamara').val('');
         $('#cajaPrevia').addClass('d-none');
@@ -60,9 +49,6 @@ $(function () {
 
     $('#btnQuitarArchivo').on('click', limpiarArchivo);
 
-    /* -------------------------------------------------------------------
-       2. Validación del formulario antes de enviarlo
-       ------------------------------------------------------------------- */
     $('#formDocumento').on('submit', function (ev) {
         var requiereArchivo = $(this).data('requiere-archivo') === true ||
                               $(this).data('requiere-archivo') === 'true';
@@ -83,11 +69,8 @@ $(function () {
         );
     });
 
-    /* -------------------------------------------------------------------
-       3. Visor de PDF dentro de la misma página (ventana modal)
-       El iframe se carga al abrir y se descarga al cerrar para liberar
-       memoria y detener la descarga si el usuario cierra antes de tiempo.
-       ------------------------------------------------------------------- */
+    // El src del iframe se asigna al abrir y se limpia al cerrar, para no dejar
+    // todos los PDF de la sesión cargados en memoria.
     var $modalVisor = $('#modalVisor');
 
     $(document).on('click', '.ver-pdf', function (ev) {
@@ -105,9 +88,7 @@ $(function () {
         $('#visorMarco').attr('src', 'about:blank');
     });
 
-    /* -------------------------------------------------------------------
-       4. Cambio rápido de estatus sin recargar la página (AJAX)
-       ------------------------------------------------------------------- */
+    // Cambio de estatus sin recargar la página.
     $(document).on('click', '.cambiar-estatus', function (ev) {
         ev.preventDefault();
         var $opcion  = $(this);
@@ -137,9 +118,6 @@ $(function () {
             });
     });
 
-    /* -------------------------------------------------------------------
-       5. Confirmación antes de eliminar
-       ------------------------------------------------------------------- */
     $(document).on('click', '.eliminar-doc', function (ev) {
         ev.preventDefault();
         var $btn = $(this);
@@ -148,9 +126,7 @@ $(function () {
         $('#modalEliminar').modal('show');
     });
 
-    /* -------------------------------------------------------------------
-       6. Buscador en vivo: filtra las filas ya cargadas mientras se escribe
-       ------------------------------------------------------------------- */
+    // Filtra las filas ya cargadas, sin volver al servidor.
     $('#busquedaRapida').on('input', function () {
         var termino = $(this).val().toLowerCase().trim();
         var visibles = 0;
@@ -164,14 +140,8 @@ $(function () {
         $('#sinResultadosFiltro').toggleClass('d-none', visibles > 0 || termino === '');
     });
 
-    /* -------------------------------------------------------------------
-       7. Los selectores de filtro envían el formulario automáticamente
-       ------------------------------------------------------------------- */
     $('.filtro-auto').on('change', function () { $(this).closest('form').trigger('submit'); });
 
-    /* -------------------------------------------------------------------
-       8. Avisos emergentes (toasts)
-       ------------------------------------------------------------------- */
     function notificar(mensaje, tipo) {
         var $toast = $(
             '<div class="toast align-items-center text-bg-' + (tipo || 'primary') + ' border-0" role="alert">' +

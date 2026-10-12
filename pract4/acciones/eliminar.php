@@ -1,9 +1,6 @@
 <?php
-/**
- * acciones/eliminar.php
- * Elimina un documento: su registro en MySQL, su archivo local y su respaldo
- * en GitHub. La bitácora asociada se borra en cascada (ON DELETE CASCADE).
- */
+// Baja de un documento: registro, archivo local y respaldo en GitHub.
+// La bitácora se borra en cascada.
 
 require_once __DIR__ . '/../conexion.php';
 require_once __DIR__ . '/../includes/funciones.php';
@@ -23,13 +20,11 @@ if (!$doc) {
     redirigir('../index.php?vista=documentos');
 }
 
-// 1. Archivo local
 if (!empty($doc['archivo_nombre'])) {
     $ruta = DIR_PDF . DIRECTORY_SEPARATOR . $doc['archivo_nombre'];
     if (is_file($ruta)) unlink($ruta);
 }
 
-// 2. Respaldo en GitHub (si existe y el token está configurado)
 if (GH_ACTIVO && !empty($doc['archivo_nombre'])) {
     githubEliminarArchivo(
         $doc['archivo_nombre'],
@@ -37,7 +32,6 @@ if (GH_ACTIVO && !empty($doc['archivo_nombre'])) {
     );
 }
 
-// 3. Registro en la base de datos
 $stmt = $conexion->prepare('DELETE FROM documentos WHERE id = ?');
 $stmt->bind_param('i', $id);
 $stmt->execute();

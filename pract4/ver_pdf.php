@@ -1,22 +1,15 @@
 <?php
-/**
- * ver_pdf.php
- * Entrega el archivo PDF de un documento para mostrarlo **dentro** de la
- * aplicación (el <iframe> de la ventana modal del listado).
- *
- * Nunca se enlaza la carpeta pdf/ de forma directa: así el archivo solo se
- * sirve a través de PHP, que valida el identificador y controla las cabeceras.
- *
- * Si el archivo no está en el servidor (por ejemplo, en un despliegue con
- * almacenamiento efímero) se recupera del respaldo de GitHub.
- */
+// Entrega el PDF de un documento al iframe de la ventana modal.
+// La carpeta pdf/ nunca se enlaza directamente: todo pasa por aquí, que valida
+// el id y controla las cabeceras. Si el archivo no está en el servidor se
+// recupera del respaldo de GitHub.
 
 require_once __DIR__ . '/conexion.php';
 require_once __DIR__ . '/includes/funciones.php';
 require_once __DIR__ . '/includes/consultas.php';
 require_once __DIR__ . '/includes/github.php';
 
-/** Muestra un mensaje de error legible dentro del visor. */
+// Mensaje de error legible dentro del visor.
 function errorVisor(string $mensaje, int $codigo = 404): void
 {
     http_response_code($codigo);
@@ -42,7 +35,7 @@ $ruta   = DIR_PDF . DIRECTORY_SEPARATOR . $nombre;
 // Nombre amigable para el navegador y para la descarga.
 $nombreVisible = 'Oficio_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $doc['no_oficio']) . '.pdf';
 
-// ¿La petición viene de descargar.php? Entonces se fuerza la descarga.
+// descargar.php entra por aquí con este parámetro.
 $descargar = isset($_GET['descargar']) && $_GET['descargar'] === '1';
 $disposicion = $descargar ? 'attachment' : 'inline';
 
@@ -57,7 +50,7 @@ if (is_file($ruta)) {
     exit;
 }
 
-// Respaldo: se recupera el archivo desde el repositorio de GitHub.
+// No está en disco: se trae del respaldo.
 $binario = githubDescargarArchivo($nombre);
 if ($binario !== null) {
     header('Content-Length: ' . strlen($binario));
@@ -65,7 +58,7 @@ if ($binario !== null) {
     exit;
 }
 
-// Se limpian las cabeceras de PDF antes de mostrar el aviso en HTML.
+// Se quitan las cabeceras de PDF antes de mostrar el aviso en HTML.
 header_remove('Content-Type');
 header_remove('Content-Disposition');
 errorVisor('El archivo PDF no se encuentra en el servidor ni en el respaldo de GitHub.');

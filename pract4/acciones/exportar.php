@@ -1,10 +1,5 @@
 <?php
-/**
- * acciones/exportar.php
- * Exporta el inventario de documentos a un archivo CSV compatible con Excel.
- * Respeta los mismos filtros que el listado, de modo que se puede exportar
- * únicamente el resultado de una consulta.
- */
+// Exporta el listado a CSV respetando los filtros activos.
 
 require_once __DIR__ . '/../conexion.php';
 require_once __DIR__ . '/../includes/funciones.php';

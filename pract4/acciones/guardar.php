@@ -1,14 +1,6 @@
 <?php
-/**
- * acciones/guardar.php
- * Registra un documento nuevo o actualiza uno existente.
- *
- * Flujo:
- *   1. Validar el token CSRF y los datos del formulario.
- *   2. Procesar el archivo subido (PDF directo, o foto JPEG que se convierte a PDF).
- *   3. Guardar el archivo en la carpeta pdf/ y respaldarlo en GitHub.
- *   4. Insertar o actualizar el registro en MySQL mediante sentencias preparadas.
- */
+// Alta y actualización de documentos. La foto JPEG se convierte a PDF antes
+// de guardarla, para que todo el acervo quede en un solo formato.
 
 require_once __DIR__ . '/../conexion.php';
 require_once __DIR__ . '/../includes/funciones.php';
@@ -21,9 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 validarCsrf();
 
-// ---------------------------------------------------------------------------
-// 1. Validación de los campos del formulario
-// ---------------------------------------------------------------------------
 $id           = (int) ($_POST['id'] ?? 0);
 $esEdicion    = $id > 0;
 $no_oficio    = trim($_POST['no_oficio'] ?? '');
@@ -46,16 +35,13 @@ if ($errores) {
     redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
 }
 
-// Documento previo (solo en edición), necesario para conservar o reemplazar el archivo.
+// En edición hace falta el registro previo para conservar o reemplazar el archivo.
 $anterior = $esEdicion ? obtenerDocumento($conexion, $id) : null;
 if ($esEdicion && !$anterior) {
     flash('danger', 'El documento que intentas editar ya no existe.');
     redirigir('../index.php?vista=documentos');
 }
 
-// ---------------------------------------------------------------------------
-// 2. Procesamiento del archivo digitalizado
-// ---------------------------------------------------------------------------
 $archivoNombre = $anterior['archivo_nombre'] ?? null;
 $archivoRuta   = $anterior['archivo_pdf']    ?? null;
 $archivoTam    = (int) ($anterior['archivo_tam'] ?? 0);
@@ -121,7 +107,6 @@ if ($subido !== null) {
     $archivoRuta   = 'pdf/' . $nuevoNombre;
     $archivoTam    = (int) filesize($rutaDestino);
 
-    // ----- Respaldo versionado en GitHub -----
     if (GH_ACTIVO) {
         $respaldo = githubSubirArchivo(
             $rutaDestino,
@@ -137,9 +122,6 @@ if ($subido !== null) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// 3. Escritura en la base de datos
-// ---------------------------------------------------------------------------
 if ($esEdicion) {
 
     $sql = 'UPDATE documentos

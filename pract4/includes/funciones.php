@@ -1,26 +1,21 @@
 <?php
-/**
- * includes/funciones.php
- * Funciones de apoyo reutilizadas por vistas y acciones.
- */
+// Funciones de apoyo usadas por las vistas y las acciones.
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-/** Escapa texto para imprimirlo con seguridad en HTML. */
+// Escapa texto antes de imprimirlo en HTML.
 function e($texto): string
 {
     return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 }
 
-/** Guarda un mensaje temporal que se mostrará en la siguiente página. */
 function flash(string $tipo, string $mensaje): void
 {
     $_SESSION['flash'] = ['tipo' => $tipo, 'mensaje' => $mensaje];
 }
 
-/** Devuelve y borra el mensaje temporal pendiente. */
 function obtenerFlash(): ?array
 {
     if (empty($_SESSION['flash'])) return null;
@@ -29,14 +24,12 @@ function obtenerFlash(): ?array
     return $flash;
 }
 
-/** Redirige a una URL interna y detiene la ejecución. */
 function redirigir(string $url): void
 {
     header('Location: ' . $url);
     exit;
 }
 
-/** Clase CSS del badge según el estatus del documento. */
 function claseEstatus(string $estatus): string
 {
     switch ($estatus) {
@@ -46,7 +39,6 @@ function claseEstatus(string $estatus): string
     }
 }
 
-/** Formatea una fecha de MySQL (Y-m-d) al formato local d/m/Y. */
 function fechaLocal(?string $fecha): string
 {
     if (empty($fecha)) return '—';
@@ -54,7 +46,6 @@ function fechaLocal(?string $fecha): string
     return $ts ? date('d/m/Y', $ts) : '—';
 }
 
-/** Convierte bytes a un texto legible (KB / MB). */
 function tamanoLegible(int $bytes): string
 {
     if ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
@@ -62,10 +53,7 @@ function tamanoLegible(int $bytes): string
     return $bytes . ' B';
 }
 
-/**
- * Construye una URL conservando los parámetros GET actuales
- * y sobrescribiendo/eliminando los que se indiquen.
- */
+// Arma una URL conservando los parámetros actuales. Un valor null elimina el parámetro.
 function urlCon(array $parametros): string
 {
     $actuales = $_GET;
@@ -76,7 +64,6 @@ function urlCon(array $parametros): string
     return 'index.php' . (empty($actuales) ? '' : '?' . http_build_query($actuales));
 }
 
-/** Genera (y reutiliza) el token CSRF de la sesión. */
 function tokenCsrf(): string
 {
     if (empty($_SESSION['csrf'])) {
@@ -85,13 +72,11 @@ function tokenCsrf(): string
     return $_SESSION['csrf'];
 }
 
-/** Campo oculto con el token CSRF, listo para insertar en un formulario. */
 function campoCsrf(): string
 {
     return '<input type="hidden" name="csrf" value="' . e(tokenCsrf()) . '">';
 }
 
-/** Valida el token CSRF recibido; termina la petición si no coincide. */
 function validarCsrf(): void
 {
     $recibido = $_POST['csrf'] ?? $_GET['csrf'] ?? '';
@@ -101,7 +86,7 @@ function validarCsrf(): void
     }
 }
 
-/** Lista de estatus permitidos (debe coincidir con el ENUM de MySQL). */
+// Debe coincidir con el ENUM de la tabla documentos.
 function estatusValidos(): array
 {
     return ['Recibido', 'En proceso', 'Atendido'];

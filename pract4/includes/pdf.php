@@ -1,26 +1,12 @@
 <?php
-/**
- * includes/pdf.php
- * Conversión de una fotografía JPEG a un archivo PDF de una página.
- *
- * Permite cumplir el requisito de "tomar fotografía desde el móvil y asociarla
- * como PDF": la imagen capturada con la cámara se incrusta en un PDF tamaño
- * carta sin recomprimirla, usando el filtro DCTDecode que el propio formato PDF
- * admite para datos JPEG. No requiere librerías externas ni la extensión GD.
- */
+// Convierte la fotografía tomada con la cámara en un PDF de una página.
+// El formato PDF admite datos JPEG tal cual mediante el filtro DCTDecode, así que
+// la imagen se incrusta sin recomprimir y sin necesitar GD ni librerías externas.
 
-/** Medidas de una página tamaño carta en puntos PostScript (1 pt = 1/72"). */
-const PDF_ANCHO_PAGINA = 612.0;
+const PDF_ANCHO_PAGINA = 612.0;   // tamaño carta en puntos (1 pt = 1/72")
 const PDF_ALTO_PAGINA  = 792.0;
 const PDF_MARGEN       = 28.0;
 
-/**
- * Crea un PDF de una página que contiene la imagen JPEG indicada.
- *
- * @param string $rutaJpeg  Imagen de origen (debe ser JPEG).
- * @param string $rutaPdf   Archivo PDF que se generará.
- * @return bool  true si el PDF se escribió correctamente.
- */
 function imagenJpegAPdf(string $rutaJpeg, string $rutaPdf): bool
 {
     $info = @getimagesize($rutaJpeg);
@@ -34,11 +20,10 @@ function imagenJpegAPdf(string $rutaJpeg, string $rutaPdf): bool
         return false;
     }
 
-    // Espacio de color según el número de canales que reporta la imagen.
     $canales = $info['channels'] ?? 3;
     $espacio = $canales === 1 ? '/DeviceGray' : ($canales === 4 ? '/DeviceCMYK' : '/DeviceRGB');
 
-    // Escala la imagen para que quepa en la página respetando su proporción.
+    // Escalar para que quepa en la página sin deformar la imagen.
     $maxAncho = PDF_ANCHO_PAGINA - 2 * PDF_MARGEN;
     $maxAlto  = PDF_ALTO_PAGINA  - 2 * PDF_MARGEN;
     $escala   = min($maxAncho / $anchoPx, $maxAlto / $altoPx);
@@ -48,10 +33,8 @@ function imagenJpegAPdf(string $rutaJpeg, string $rutaPdf): bool
     $x     = (PDF_ANCHO_PAGINA - $ancho) / 2;
     $y     = (PDF_ALTO_PAGINA  - $alto)  / 2;
 
-    // Flujo de contenido: coloca la imagen en la posición calculada.
     $contenido = sprintf("q %.2F 0 0 %.2F %.2F %.2F cm /Im0 Do Q", $ancho, $alto, $x, $y);
 
-    // --- Construcción de los objetos del PDF --------------------------------
     $objetos = [];
     $objetos[1] = "<< /Type /Catalog /Pages 2 0 R >>";
     $objetos[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
@@ -65,15 +48,15 @@ function imagenJpegAPdf(string $rutaJpeg, string $rutaPdf): bool
                 . "/Length " . strlen($binario) . " >>\nstream\n" . $binario . "\nendstream";
     $objetos[5] = "<< /Length " . strlen($contenido) . " >>\nstream\n" . $contenido . "\nendstream";
 
-    // --- Ensamblado del archivo con su tabla de referencias cruzadas --------
-    $salida      = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
-    $posiciones  = [];
+    $salida     = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
+    $posiciones = [];
 
     foreach ($objetos as $numero => $cuerpo) {
         $posiciones[$numero] = strlen($salida);
         $salida .= "$numero 0 obj\n$cuerpo\nendobj\n";
     }
 
+    // Tabla de referencias cruzadas: guarda el byte donde empieza cada objeto.
     $inicioXref = strlen($salida);
     $total      = count($objetos) + 1;
 
