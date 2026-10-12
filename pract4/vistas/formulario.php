@@ -33,7 +33,8 @@ if ($esEdicion) {
             </div>
 
             <form action="acciones/guardar.php" method="POST" enctype="multipart/form-data"
-                  id="formDocumento" data-requiere-archivo="<?= $esEdicion ? 'false' : 'true' ?>" novalidate>
+                  id="formDocumento" data-requiere-archivo="<?= $esEdicion ? 'false' : 'true' ?>"
+                  data-max-bytes="<?= MAX_PDF_BYTES ?>" novalidate>
 
                 <?= campoCsrf() ?>
                 <input type="hidden" name="id" value="<?= (int) $doc['id'] ?>">
@@ -171,9 +172,12 @@ if ($esEdicion) {
                     <?php endif; ?>
 
                     <small class="text-muted d-block mt-2">
-                        Formatos aceptados: PDF o fotografía JPG. Tamaño máximo: 10 MB.
+                        Formatos aceptados: PDF o fotografía JPG. Tamaño máximo: <?= tamanoLegible(MAX_PDF_BYTES) ?>.
                         <?php if (GH_ACTIVO): ?>
-                            <br><i class="bi bi-github"></i> El archivo también se respaldará automáticamente en el repositorio de GitHub.
+                            <br><i class="bi bi-github"></i>
+                            <?= ALMACEN_EFIMERO
+                                ? 'El archivo se almacenará en el repositorio de GitHub.'
+                                : 'El archivo también se respaldará automáticamente en el repositorio de GitHub.' ?>
                         <?php endif; ?>
                     </small>
                 </div>

@@ -12,21 +12,42 @@ foreach ($tablas as $t) {
     $conteos[$t] = (int) $conexion->query("SELECT COUNT(*) AS c FROM `$t`")->fetch_assoc()['c'];
 }
 
-$carpetaExiste    = is_dir(DIR_PDF);
-$carpetaEscribible = $carpetaExiste && is_writable(DIR_PDF);
-$archivos = $carpetaExiste ? array_filter(scandir(DIR_PDF), fn($f) => str_ends_with(strtolower($f), '.pdf')) : [];
-$pesoTotal = 0;
-foreach ($archivos as $a) $pesoTotal += filesize(DIR_PDF . DIRECTORY_SEPARATOR . $a);
-
 $estadoGh = githubEstado();
 
+// En Vercel el inventario real vive en GitHub; en XAMPP, en la carpeta pdf/.
+if (ALMACEN_EFIMERO) {
+    $archivos  = githubListarArchivos();
+    $pesoTotal = array_sum(array_column($archivos, 'tam'));
+    $almacenOk = $estadoGh['ok'];
+    $almacenDetalle = $almacenOk
+        ? count($archivos) . ' archivo(s) en GitHub · ' . tamanoLegible($pesoTotal)
+        . '. El disco de Vercel es temporal, por eso los PDF se guardan en el repositorio.'
+        : 'En Vercel los PDF se almacenan en GitHub, pero el repositorio no está accesible.';
+} else {
+    $carpetaExiste  = is_dir(DIR_PDF);
+    $almacenOk      = $carpetaExiste && is_writable(DIR_PDF);
+    $archivos  = $carpetaExiste ? array_filter(scandir(DIR_PDF), fn($f) => str_ends_with(strtolower($f), '.pdf')) : [];
+    $pesoTotal = 0;
+    foreach ($archivos as $a) $pesoTotal += filesize(DIR_PDF . DIRECTORY_SEPARATOR . $a);
+    $almacenDetalle = $almacenOk
+        ? count($archivos) . ' archivo(s) guardados · ' . tamanoLegible($pesoTotal) . ' en total.'
+        : 'La carpeta pdf/ no existe o no tiene permisos de escritura.';
+}
+
+$faltantes = array_values(array_filter(
+    ['mysqli', 'curl', 'fileinfo', 'openssl'],
+    fn($ext) => !extension_loaded($ext)
+));
+
 $datosServidor = [
+    'Entorno'                   => EN_VERCEL ? 'Vercel (' . env('VERCEL_ENV', 'production') . ')' : 'Servidor local',
     'Versión de PHP'            => PHP_VERSION,
     'Servidor web'              => $_SERVER['SERVER_SOFTWARE'] ?? 'desconocido',
     'Versión de MySQL'          => $conexion->server_info,
     'Subida máxima permitida'   => ini_get('upload_max_filesize'),
     'Tamaño máximo del POST'    => ini_get('post_max_size'),
     'Límite propio de la app'   => tamanoLegible(MAX_PDF_BYTES),
+    'Conexión cifrada a MySQL'  => DB_SSL ? 'Sí (TLS)' : 'No',
     'Zona horaria'              => date_default_timezone_get(),
 ];
 
@@ -58,28 +79,37 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
                 );
 
                 filaEstado(
-                    'Almacenamiento de archivos PDF',
-                    $carpetaEscribible,
-                    $carpetaEscribible
-                        ? count($archivos) . ' archivo(s) guardados · ' . tamanoLegible($pesoTotal) . ' en total.'
-                        : 'La carpeta pdf/ no existe o no tiene permisos de escritura.'
+                    ALMACEN_EFIMERO ? 'Almacenamiento de PDF (GitHub)' : 'Almacenamiento de archivos PDF',
+                    $almacenOk,
+                    $almacenDetalle
                 );
 
                 filaEstado(
-                    'Respaldo versionado en GitHub',
+                    ALMACEN_EFIMERO ? 'Conexión con el repositorio' : 'Respaldo versionado en GitHub',
                     $estadoGh['ok'],
                     $estadoGh['detalle']
+                );
+
+                filaEstado(
+                    'Extensiones de PHP',
+                    empty($faltantes),
+                    empty($faltantes)
+                        ? 'mysqli, curl, fileinfo y openssl están disponibles.'
+                        : 'Faltan: ' . implode(', ', $faltantes) . '.'
                 );
                 ?>
             </ul>
 
             <?php if (!$estadoGh['ok']): ?>
                 <div class="alert alert-light border small mt-3 mb-0">
-                    <strong><i class="bi bi-info-circle me-1"></i>Cómo activar el respaldo en GitHub</strong>
+                    <strong><i class="bi bi-info-circle me-1"></i>Cómo configurar el almacenamiento en GitHub</strong>
                     <ol class="mb-0 mt-2 ps-3">
                         <li>Genera un token personal en GitHub con permiso de escritura sobre el repositorio.</li>
-                        <li>Define las variables de entorno <code>GITHUB_TOKEN</code>, <code>GITHUB_REPO</code>,
+                        <li>Define las variables <code>GITHUB_TOKEN</code>, <code>GITHUB_REPO</code>,
                             <code>GITHUB_BRANCH</code> y <code>GITHUB_PATH</code>.</li>
+                        <li>Usa una rama aparte (por ejemplo <code>archivos</code>) en
+                            <code>GITHUB_BRANCH</code>: si los PDF se suben a <code>main</code>,
+                            cada documento registrado dispara un despliegue nuevo en Vercel.</li>
                         <li>En local puedes agregarlas al archivo <code>php.ini</code> o al
                             <code>httpd.conf</code> de XAMPP con <code>SetEnv</code>;
                             en Vercel se capturan en <em>Settings &rarr; Environment Variables</em>.</li>

@@ -21,14 +21,16 @@ $(function () {
         if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $(this).trigger('click'); }
     });
 
-    var MAX_BYTES = 10 * 1024 * 1024;   // debe coincidir con MAX_PDF_BYTES de config.php
+    // El tope lo fija el servidor: cambia entre XAMPP y Vercel.
+    var MAX_BYTES = parseInt($('#formDocumento').data('max-bytes'), 10) || 10 * 1024 * 1024;
 
     function mostrarArchivo(archivo, origen) {
         if (!archivo) return;
 
         if (archivo.size > MAX_BYTES) {
             alert('El archivo pesa ' + (archivo.size / 1048576).toFixed(2) +
-                  ' MB y el límite es de 10 MB. Selecciona uno más ligero.');
+                  ' MB y el límite es de ' + (MAX_BYTES / 1048576).toFixed(0) +
+                  ' MB. Selecciona uno más ligero.');
             limpiarArchivo();
             return;
         }

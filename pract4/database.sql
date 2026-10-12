@@ -54,6 +54,13 @@ CREATE TABLE IF NOT EXISTS bitacora (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS sesiones (
+    id          VARCHAR(128) PRIMARY KEY,
+    datos       MEDIUMBLOB   NOT NULL,
+    actualizada INT UNSIGNED NOT NULL,
+    INDEX idx_actualizada (actualizada)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO usuarios (nombre, correo, area, rol) VALUES
     ('Administrador del Sistema', 'admin@unach.mx',      'ETDA - Campus IV',           'Administrador'),
     ('Recepción de Oficios',      'recepcion@unach.mx',  'Coordinación Administrativa','Capturista'),

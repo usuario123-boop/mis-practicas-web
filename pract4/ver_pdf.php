@@ -50,9 +50,13 @@ if (is_file($ruta)) {
     exit;
 }
 
-// No está en disco: se trae del respaldo.
+// No está en disco: se trae del almacenamiento remoto.
 $binario = githubDescargarArchivo($nombre);
 if ($binario !== null) {
+    // Copia local para que las siguientes peticiones no vuelvan a la API.
+    if (is_dir(DIR_PDF) || @mkdir(DIR_PDF, 0775, true)) {
+        @file_put_contents($ruta, $binario);
+    }
     header('Content-Length: ' . strlen($binario));
     echo $binario;
     exit;
@@ -61,4 +65,4 @@ if ($binario !== null) {
 // Se quitan las cabeceras de PDF antes de mostrar el aviso en HTML.
 header_remove('Content-Type');
 header_remove('Content-Disposition');
-errorVisor('El archivo PDF no se encuentra en el servidor ni en el respaldo de GitHub.');
+errorVisor('El archivo PDF no se encuentra en el servidor ni en el almacenamiento de GitHub.');

@@ -114,6 +114,26 @@ function githubDescargarArchivo(string $nombre): ?string
     return $binario !== false ? $binario : null;
 }
 
+// Inventario del almacenamiento remoto, usado por la pantalla de configuración.
+function githubListarArchivos(): array
+{
+    if (!GH_ACTIVO) return [];
+
+    $endpoint = '/repos/' . GH_REPO . '/contents/' . rutaCodificada(trim(GH_RUTA, '/'))
+              . '?ref=' . urlencode(GH_BRANCH);
+
+    $resultado = githubPeticion('GET', $endpoint);
+    if ($resultado['codigo'] !== 200 || !is_array($resultado['cuerpo'])) return [];
+
+    $archivos = [];
+    foreach ($resultado['cuerpo'] as $entrada) {
+        if (($entrada['type'] ?? '') !== 'file') continue;
+        if (!str_ends_with(strtolower($entrada['name'] ?? ''), '.pdf')) continue;
+        $archivos[] = ['nombre' => $entrada['name'], 'tam' => (int) ($entrada['size'] ?? 0)];
+    }
+    return $archivos;
+}
+
 // Codifica cada segmento de la ruta sin escapar las diagonales.
 function rutaCodificada(string $ruta): string
 {
@@ -126,11 +146,21 @@ function githubEstado(): array
         return ['ok' => false, 'detalle' => 'Sin configurar (no existe la variable GITHUB_TOKEN).'];
     }
     $resultado = githubPeticion('GET', '/repos/' . GH_REPO);
-    if ($resultado['codigo'] === 200) {
-        return ['ok' => true, 'detalle' => 'Conectado a ' . GH_REPO . ' (rama ' . GH_BRANCH . ').'];
+    if ($resultado['codigo'] !== 200) {
+        return [
+            'ok'      => false,
+            'detalle' => 'No se pudo acceder al repositorio: ' . ($resultado['cuerpo']['message'] ?? 'error ' . $resultado['codigo']),
+        ];
     }
-    return [
-        'ok'      => false,
-        'detalle' => 'No se pudo acceder al repositorio: ' . ($resultado['cuerpo']['message'] ?? 'error ' . $resultado['codigo']),
-    ];
+
+    // Una rama inexistente haría fallar cada subida, así que se comprueba aparte.
+    $rama = githubPeticion('GET', '/repos/' . GH_REPO . '/branches/' . rawurlencode(GH_BRANCH));
+    if ($rama['codigo'] !== 200) {
+        return [
+            'ok'      => false,
+            'detalle' => 'El repositorio ' . GH_REPO . ' responde, pero la rama "' . GH_BRANCH . '" no existe.',
+        ];
+    }
+
+    return ['ok' => true, 'detalle' => 'Conectado a ' . GH_REPO . ' (rama ' . GH_BRANCH . ', carpeta ' . GH_RUTA . ').'];
 }

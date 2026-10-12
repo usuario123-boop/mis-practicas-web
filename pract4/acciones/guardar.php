@@ -11,6 +11,14 @@ require_once __DIR__ . '/../includes/pdf.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirigir('../index.php?vista=documentos');
 }
+
+// Si el envío excede post_max_size, PHP descarta $_POST y el fallo aparecería
+// como un token CSRF inválido en lugar de un problema de tamaño.
+if (empty($_POST) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    flash('danger', 'El envío superó el tamaño máximo permitido (' . tamanoLegible(MAX_PDF_BYTES) . '). Usa un archivo más pequeño.');
+    redirigir('../index.php?vista=nuevo');
+}
+
 validarCsrf();
 
 $id           = (int) ($_POST['id'] ?? 0);
@@ -49,12 +57,29 @@ $githubUrl     = $anterior['github_url']     ?? null;
 $avisoGithub   = '';
 
 // Se acepta el archivo de cualquiera de los dos inputs (cámara o selector).
-$subido = null;
+$subido      = null;
+$errorSubida = UPLOAD_ERR_NO_FILE;
 foreach (['archivo_pdf', 'archivo_camara'] as $campo) {
-    if (isset($_FILES[$campo]) && $_FILES[$campo]['error'] === UPLOAD_ERR_OK) {
+    if (!isset($_FILES[$campo])) continue;
+    if ($_FILES[$campo]['error'] === UPLOAD_ERR_OK) {
         $subido = $_FILES[$campo];
         break;
     }
+    if ($_FILES[$campo]['error'] !== UPLOAD_ERR_NO_FILE) {
+        $errorSubida = $_FILES[$campo]['error'];
+    }
+}
+
+if ($subido === null && $errorSubida !== UPLOAD_ERR_NO_FILE) {
+    $motivos = [
+        UPLOAD_ERR_INI_SIZE   => 'el archivo supera el límite de ' . tamanoLegible(MAX_PDF_BYTES),
+        UPLOAD_ERR_FORM_SIZE  => 'el archivo supera el límite del formulario',
+        UPLOAD_ERR_PARTIAL    => 'la carga se interrumpió a medias',
+        UPLOAD_ERR_NO_TMP_DIR => 'el servidor no tiene carpeta temporal disponible',
+        UPLOAD_ERR_CANT_WRITE => 'el servidor no pudo escribir el archivo temporal',
+    ];
+    flash('danger', 'No se recibió el archivo: ' . ($motivos[$errorSubida] ?? 'error ' . $errorSubida) . '.');
+    redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
 }
 
 if ($subido === null && !$esEdicion) {
@@ -63,6 +88,13 @@ if ($subido === null && !$esEdicion) {
 }
 
 if ($subido !== null) {
+
+    // En Vercel el disco se borra al terminar la petición: sin GitHub el PDF
+    // quedaría registrado en la base pero no existiría en ningún lado.
+    if (ALMACEN_EFIMERO && !GH_ACTIVO) {
+        flash('danger', 'Falta configurar la variable <code>GITHUB_TOKEN</code>: sin ella no hay dónde almacenar el PDF.');
+        redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
+    }
 
     if ($subido['size'] > MAX_PDF_BYTES) {
         flash('danger', 'El archivo supera el límite de ' . tamanoLegible(MAX_PDF_BYTES) . '.');
@@ -93,7 +125,10 @@ if ($subido !== null) {
     }
 
     if (!$guardado) {
-        flash('danger', 'No fue posible guardar el archivo en el servidor. Revisa los permisos de la carpeta pdf/.');
+        $motivo = ALMACEN_EFIMERO
+            ? 'No fue posible preparar el archivo en el servidor.'
+            : 'No fue posible guardar el archivo. Revisa los permisos de la carpeta pdf/.';
+        flash('danger', $motivo);
         redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
     }
 
@@ -115,7 +150,11 @@ if ($subido !== null) {
         );
         if ($respaldo['ok']) {
             $githubUrl   = $respaldo['url'];
-            $avisoGithub = ' Respaldo creado en GitHub.';
+            $avisoGithub = ' Archivo almacenado en GitHub.';
+        } elseif (ALMACEN_EFIMERO) {
+            @unlink($rutaDestino);
+            flash('danger', 'El documento no se guardó porque falló la subida a GitHub: ' . e($respaldo['detalle']));
+            redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
         } else {
             $avisoGithub = ' (El respaldo en GitHub no se completó: ' . e($respaldo['detalle']) . ')';
         }
