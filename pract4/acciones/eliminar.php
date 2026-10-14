@@ -24,5 +24,8 @@ $stmt->bind_param('i', $id);
 $stmt->execute();
 $stmt->close();
 
+// La copia local de XAMPP no está ligada a la fila, hay que retirarla aparte.
+borrarCopiaPdf($doc['archivo_nombre'] ?? null);
+
 flash('success', 'El documento <strong>' . e($doc['no_oficio']) . '</strong> se eliminó correctamente.');
 redirigir('../index.php?vista=documentos');

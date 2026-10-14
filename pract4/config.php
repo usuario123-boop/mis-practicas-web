@@ -55,3 +55,9 @@ define('APP_NOMBRE', 'UNACH · Gestión de Documentos');
 define('POR_PAGINA', (int) env('POR_PAGINA', 5));
 
 date_default_timezone_set('America/Mexico_City');
+
+// Copia local de los PDF. En XAMPP, además de guardarlos en la base de datos,
+// se escribe una copia dentro de prac4/pdf/ para tener los archivos a la mano
+// en el disco. En Vercel no se hace: el sistema de archivos es de solo lectura.
+define('RUTA_PDF', __DIR__ . '/pdf');
+define('COPIA_LOCAL_PDF', !EN_VERCEL);

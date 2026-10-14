@@ -126,6 +126,14 @@ if ($subido !== null) {
         redirigir('../index.php?vista=' . ($esEdicion ? "editar&id=$id" : 'nuevo'));
     }
 
+    // En XAMPP, además de la base de datos, queda una copia en prac4/pdf/.
+    // Si se reemplaza el documento de un oficio, la copia anterior se retira
+    // para no dejar archivos sueltos en la carpeta.
+    if ($esEdicion && !empty($anterior['archivo_nombre'])) {
+        borrarCopiaPdf($anterior['archivo_nombre']);
+    }
+    guardarCopiaPdf($nuevoNombre, $contenido);
+
     $archivoNombre = $nuevoNombre;
     $archivoRuta   = $nuevoNombre;
     $archivoTam    = strlen($contenido);

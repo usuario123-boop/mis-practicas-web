@@ -20,6 +20,18 @@ $almacenOk = true;
 $almacenDetalle = (int) $resumen['n'] . ' archivo(s) guardados · '
     . tamanoLegible((int) $resumen['peso']) . ' en total, dentro de la base de datos.';
 
+// Segundo semáforo, solo en XAMPP: la carpeta pdf/ donde queda la copia en disco.
+$copiaOk = $copiaDetalle = null;
+if (COPIA_LOCAL_PDF) {
+    $archivosLocales = is_dir(RUTA_PDF) ? glob(RUTA_PDF . '/*.pdf') : [];
+    $pesoLocal       = array_sum(array_map('filesize', $archivosLocales));
+    $copiaOk         = is_dir(RUTA_PDF) && is_writable(RUTA_PDF);
+    $copiaDetalle    = $copiaOk
+        ? count($archivosLocales) . ' archivo(s) · ' . tamanoLegible((int) $pesoLocal)
+          . ' en la carpeta pdf/ del proyecto.'
+        : 'La carpeta ' . RUTA_PDF . ' no existe o no tiene permiso de escritura.';
+}
+
 $faltantes = array_values(array_filter(
     ['mysqli', 'fileinfo', 'openssl'],
     fn($ext) => !extension_loaded($ext)
@@ -70,6 +82,10 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
                     $almacenDetalle
                 );
 
+                if (COPIA_LOCAL_PDF) {
+                    filaEstado('Copia local en la carpeta pdf/', $copiaOk, $copiaDetalle);
+                }
+
                 filaEstado(
                     'Extensiones de PHP',
                     empty($faltantes),
@@ -88,6 +104,13 @@ function filaEstado(string $titulo, bool $ok, string $detalle): void
                     comporta igual en XAMPP y en Vercel, donde el disco es de solo lectura y
                     cualquier archivo escrito se perdería al terminar la petición. Al borrar
                     un documento su PDF desaparece con él, sin dejar archivos huérfanos.
+                </p>
+                <p class="mb-0 mt-2">
+                    En XAMPP, además, cada PDF se escribe como copia en la carpeta
+                    <code>pdf/</code> del proyecto, para poder abrirlo directamente desde el
+                    explorador de archivos. El botón <em>Descargar</em> del visor no usa esa
+                    carpeta: la descarga la hace el navegador y el archivo va a la carpeta de
+                    descargas del equipo o del teléfono.
                 </p>
             </div>
         </div>

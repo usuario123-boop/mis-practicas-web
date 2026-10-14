@@ -125,14 +125,18 @@ if ($esEdicion) {
                     </div>
 
                     <!--
-                        Dos inputs distintos: el de cámara usa capture="environment"
-                        para abrir la cámara trasera en dispositivos móviles; la foto
-                        resultante se convierte a PDF en el servidor.
+                        Dos inputs distintos: el de cámara recibe la fotografía (de la
+                        captura hecha en la página o de la app del teléfono) y el otro el
+                        PDF; la foto se convierte a PDF en el servidor.
+
+                        accept="image/*" en lugar de image/jpeg: los teléfonos entregan
+                        HEIC o PNG según el modelo y con el filtro estricto algunos ni
+                        muestran la foto en el selector. app.js la reconvierte a JPEG.
                     -->
                     <input type="file" class="d-none" id="entradaCamara" name="archivo_camara"
-                           accept="image/jpeg" capture="environment">
+                           accept="image/*" capture="environment">
                     <input type="file" class="d-none" id="entradaArchivo" name="archivo_pdf"
-                           accept="application/pdf,image/jpeg">
+                           accept="application/pdf,image/*">
 
                     <!-- Vista previa del archivo elegido -->
                     <div id="cajaPrevia" class="mt-3 d-none p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center">
@@ -184,6 +188,46 @@ if ($esEdicion) {
                 </button>
             </form>
 
+        </div>
+    </div>
+</div>
+
+<!--
+    Cámara dentro de la propia página.
+
+    Con capture="environment" el navegador delega la foto a la app de cámara del
+    teléfono, que la entrega a resolución completa (12 Mpx y varios MB). En equipos
+    con poca memoria libre esa entrega falla y Android responde "memoria
+    insuficiente para cumplir con la función anterior". Capturando el cuadro desde
+    un <video> se controla la resolución, nunca se construye la imagen completa en
+    memoria y el JPEG que se sube pesa unos cientos de kilobytes.
+-->
+<div class="modal fade" id="modalCamara" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header border-0">
+                <h6 class="modal-title fw-bold">
+                    <i class="bi bi-camera me-2 text-primary"></i>Foto del documento
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="ratio ratio-4x3 bg-dark rounded-3 overflow-hidden">
+                    <video id="camaraVideo" playsinline muted autoplay style="object-fit:cover"></video>
+                </div>
+                <div id="camaraAviso" class="alert alert-warning small mt-3 mb-0 d-none"></div>
+                <small class="text-muted d-block mt-2">
+                    Encuadra la hoja completa y mantén el teléfono firme.
+                </small>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light rounded-3" id="btnCamaraSistema">
+                    <i class="bi bi-images me-1"></i>Galería o app de cámara
+                </button>
+                <button type="button" class="btn btn-primary rounded-3 fw-bold" id="btnCamaraDisparar">
+                    <i class="bi bi-camera-fill me-1"></i>Capturar
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -1,0 +1,3 @@
+# Las copias locales de XAMPP no van al repositorio: el PDF de verdad vive en
+# la columna documentos.archivo_datos de la base de datos.
+*.pdf

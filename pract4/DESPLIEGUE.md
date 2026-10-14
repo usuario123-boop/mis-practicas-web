@@ -1,13 +1,13 @@
 # Despliegue en Vercel
 
 La práctica funciona igual en XAMPP y en Vercel. El código detecta el entorno
-con la variable `VERCEL` y cambia dos cosas: dónde guarda los PDF y dónde
-guarda las sesiones.
+con la variable `VERCEL` y cambia dos cosas: dónde guarda las sesiones y si
+escribe o no una copia de los PDF en el disco.
 
 | | XAMPP | Vercel |
 |---|---|---|
 | Base de datos | MySQL local | MySQL en la nube (TLS) |
-| PDF | carpeta `pdf/` | repositorio de GitHub |
+| PDF | columna `documentos.archivo_datos` + copia en `pdf/` | solo la columna `archivo_datos` |
 | Sesiones | archivos en disco | tabla `sesiones` de MySQL |
 | Tamaño máximo | 10 MB | 4 MB (tope de la plataforma: 4.5 MB) |
 
@@ -24,19 +24,16 @@ Crea una MySQL en la nube (Aiven, Clever Cloud, Railway…) e importa
 
 ## 3. Almacenamiento de los PDF
 
-En Vercel el disco es de solo lectura y lo que se escriba en `/tmp` se pierde
-al terminar la petición, así que GitHub deja de ser respaldo y pasa a ser el
-almacenamiento real. Sin `GITHUB_TOKEN` la aplicación rechaza las altas en
-lugar de registrar documentos cuyo archivo no existiría.
+El archivo se guarda dentro de MySQL, en `documentos.archivo_datos`. No hace
+falta ningún servicio extra ni token: en Vercel el disco es de solo lectura y
+lo que se escriba en `/tmp` se pierde al terminar la petición, así que la base
+de datos es el único almacenamiento posible, y al borrar un documento su PDF
+desaparece con la fila.
 
-Crea una rama aparte para los archivos:
-
-```
-git branch archivos && git push origin archivos
-```
-
-Si los PDF se suben a `main`, cada documento registrado genera un commit y
-cada commit dispara un despliegue nuevo.
+En XAMPP se escribe además una copia en `pract4/pdf/`, con el mismo nombre con
+el que se descarga el documento. Es solo una comodidad para abrir los archivos
+desde el explorador: la aplicación siempre lee el PDF de la base de datos. Esa
+carpeta no se sincroniza con el repositorio (basta el `.gitkeep`).
 
 ## 4. Variables de entorno
 
@@ -49,15 +46,22 @@ En Vercel → Settings → Environment Variables:
 | `DB_USER` | usuario |
 | `DB_PASS` | contraseña |
 | `DB_NAME` | nombre de la base |
-| `GITHUB_TOKEN` | token personal con permiso de escritura |
-| `GITHUB_REPO` | `usuario123-boop/mis-practicas-web` |
-| `GITHUB_BRANCH` | `archivos` |
-| `GITHUB_PATH` | `pract4/pdf` |
 
 Opcionales: `DB_SSL` (`1` en Vercel, `0` en local), `DB_SSL_CA` con la ruta al
 certificado si el proveedor exige verificarlo, `MAX_PDF_BYTES`, `POR_PAGINA`.
 
-## 5. Comprobación
+## 5. La cámara en el teléfono
 
-Abre `/pract4/index.php?vista=configuracion`. Los cuatro semáforos —base de
-datos, almacenamiento, repositorio y extensiones de PHP— deben estar en verde.
+La foto se toma dentro de la página con `getUserMedia` y se reduce a 1600 px de
+lado mayor antes de subirla. Así el JPEG pesa unos cientos de kilobytes, cabe
+en el límite de 4.5 MB de Vercel y se evita el error «memoria insuficiente»
+que devuelven los teléfonos con poca memoria libre cuando la app de cámara
+tiene que entregar una foto a resolución completa. `getUserMedia` exige un
+origen seguro: en Vercel hay HTTPS y `localhost` cuenta como seguro, pero si se
+abre la práctica por IP de la red local (`http://192.168.x.x/...`) el navegador
+no dará acceso a la cámara y la aplicación recurrirá al selector del sistema.
+
+## 6. Comprobación
+
+Abre `/pract4/index.php?vista=configuracion`. Los semáforos —base de datos,
+almacenamiento y extensiones de PHP— deben estar en verde.

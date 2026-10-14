@@ -91,3 +91,33 @@ function estatusValidos(): array
 {
     return ['Recibido', 'En proceso', 'Atendido'];
 }
+
+// --- Copia local de los PDF (solo en XAMPP) ---------------------------------
+// La base de datos sigue siendo el origen de los archivos: esta copia existe
+// para que la carpeta pdf/ contenga realmente los documentos registrados y se
+// puedan abrir desde el explorador de Windows.
+
+function guardarCopiaPdf(string $nombre, string $contenido): bool
+{
+    if (!COPIA_LOCAL_PDF || $nombre === '') return false;
+    if (!is_dir(RUTA_PDF) && !@mkdir(RUTA_PDF, 0777, true)) return false;
+
+    return @file_put_contents(RUTA_PDF . '/' . basename($nombre), $contenido) !== false;
+}
+
+function borrarCopiaPdf(?string $nombre): void
+{
+    if (!COPIA_LOCAL_PDF || empty($nombre)) return;
+
+    $ruta = RUTA_PDF . '/' . basename($nombre);
+    if (is_file($ruta)) @unlink($ruta);
+}
+
+// Añade la fecha del archivo a la URL de un asset, para que el navegador
+// descargue la versión nueva en lugar de la que tenga en caché. Sin esto, un
+// teléfono que ya visitó el sitio puede seguir ejecutando el app.js anterior.
+function versionAsset(string $relativo): string
+{
+    $fecha = @filemtime(__DIR__ . '/../' . $relativo);
+    return $relativo . '?v=' . ($fecha ?: '1');
+}

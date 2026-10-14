@@ -12,8 +12,9 @@ $(function () {
         });
     });
 
-    // Cada botón abre su propio input: uno la cámara, otro el selector de archivos.
-    $('#btnCamara').on('click', function () { $('#entradaCamara').trigger('click'); });
+    // El botón de cámara abre la captura dentro de la página; el otro, el
+    // selector de archivos del sistema.
+    $('#btnCamara').on('click', abrirCamara);
     $('#btnArchivo').on('click', function () { $('#entradaArchivo').trigger('click'); });
 
     // Permite activar los botones con el teclado (accesibilidad).
@@ -51,15 +52,172 @@ $(function () {
         $('#cajaPrevia').addClass('d-none');
     }
 
+    // ---- Fotografías ------------------------------------------------------
+    //
+    // Una foto de teléfono ronda los 12 Mpx y varios MB: arriba del tope de
+    // Vercel (4 MB) y un desperdicio para digitalizar una hoja. Antes de subirla
+    // se redibuja en un canvas a 1600 px de lado mayor y se recomprime a JPEG,
+    // con lo que queda en unos cientos de kilobytes. De paso resuelve el HEIC de
+    // iPhone, que el servidor no acepta: el canvas siempre devuelve JPEG.
+
+    var LADO_MAXIMO  = 1600;
+    var CALIDAD_JPEG = 0.82;
+
+    function dimensionesReducidas(ancho, alto) {
+        var escala = Math.min(1, LADO_MAXIMO / Math.max(ancho, alto));
+        return [Math.round(ancho * escala), Math.round(alto * escala)];
+    }
+
+    // Deja el JPEG dentro del input de cámara, que es el campo que el servidor
+    // trata como fotografía. Asignar un FileList requiere DataTransfer.
+    function usarFoto(blob, origen) {
+        if (!window.DataTransfer || !window.File) return false;
+
+        var archivo = new File([blob], 'documento_' + Date.now() + '.jpg',
+                               { type: 'image/jpeg', lastModified: Date.now() });
+        var deposito = new DataTransfer();
+        deposito.items.add(archivo);
+
+        $('#entradaArchivo').val('');
+        $('#entradaCamara')[0].files = deposito.files;
+        mostrarArchivo(archivo, origen);
+        return true;
+    }
+
+    // Reduce un archivo de imagen ya elegido (galería o app de cámara).
+    function reducirImagen(archivo, origen) {
+        var url = URL.createObjectURL(archivo);
+        var imagen = new Image();
+
+        imagen.onload = function () {
+            var medidas = dimensionesReducidas(imagen.width, imagen.height);
+            var lienzo  = document.createElement('canvas');
+            lienzo.width  = medidas[0];
+            lienzo.height = medidas[1];
+            lienzo.getContext('2d').drawImage(imagen, 0, 0, medidas[0], medidas[1]);
+            URL.revokeObjectURL(url);
+
+            lienzo.toBlob(function (blob) {
+                // Si el navegador no pudo recomprimir, se sube tal cual y manda
+                // el aviso de tamaño de mostrarArchivo.
+                if (!blob || !usarFoto(blob, origen)) mostrarArchivo(archivo, origen);
+            }, 'image/jpeg', CALIDAD_JPEG);
+        };
+
+        imagen.onerror = function () {
+            URL.revokeObjectURL(url);
+            mostrarArchivo(archivo, origen);
+        };
+
+        imagen.src = url;
+    }
+
+    function esImagen(archivo) {
+        return /^image\//.test(archivo.type) || /\.(jpe?g|png|heic|heif|webp)$/i.test(archivo.name);
+    }
+
     $('#entradaArchivo').on('change', function () {
+        var archivo = this.files[0];
+        if (!archivo) return;
+
         $('#entradaCamara').val('');
-        mostrarArchivo(this.files[0], 'archivo seleccionado');
+        if (esImagen(archivo)) reducirImagen(archivo, 'foto seleccionada');
+        else                   mostrarArchivo(archivo, 'archivo seleccionado');
     });
 
     $('#entradaCamara').on('change', function () {
+        var archivo = this.files[0];
+        if (!archivo) return;
+
         $('#entradaArchivo').val('');
-        mostrarArchivo(this.files[0], 'foto capturada');
+        if (esImagen(archivo)) reducirImagen(archivo, 'foto capturada');
+        else                   mostrarArchivo(archivo, 'foto capturada');
     });
+
+    // ---- Cámara dentro de la página ---------------------------------------
+    //
+    // capture="environment" delega la foto a la app de cámara del teléfono, y en
+    // equipos con poca memoria libre esa entrega falla con "memoria insuficiente
+    // para cumplir con la función anterior". Con getUserMedia la resolución la
+    // pide la página, así que ese paso desaparece. Requiere HTTPS: en Vercel ya
+    // lo hay y localhost cuenta como origen seguro.
+
+    var $modalCamara = $('#modalCamara');
+    var flujoCamara  = null;
+
+    function abrirCamara() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.DataTransfer) {
+            $('#entradaCamara').trigger('click');
+            return;
+        }
+
+        $('#camaraAviso').addClass('d-none').text('');
+        $modalCamara.modal('show');
+
+        navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: { ideal: 'environment' },
+                width:  { ideal: 1920 },
+                height: { ideal: 1440 }
+            }
+        }).then(function (flujo) {
+            flujoCamara = flujo;
+            $('#camaraVideo')[0].srcObject = flujo;
+        }).catch(function () {
+            $('#camaraAviso').removeClass('d-none').text(
+                'El navegador no pudo abrir la cámara (permiso denegado o conexión sin HTTPS). ' +
+                'Usa “Galería o app de cámara”.'
+            );
+        });
+    }
+
+    function cerrarCamara() {
+        if (flujoCamara) {
+            flujoCamara.getTracks().forEach(function (pista) { pista.stop(); });
+            flujoCamara = null;
+        }
+        var video = $('#camaraVideo')[0];
+        if (video) video.srcObject = null;
+    }
+
+    $('#btnCamaraDisparar').on('click', function () {
+        var video = $('#camaraVideo')[0];
+        if (!video || !video.videoWidth) {
+            $('#camaraAviso').removeClass('d-none').text('La cámara aún no está lista, espera un momento.');
+            return;
+        }
+
+        var medidas = dimensionesReducidas(video.videoWidth, video.videoHeight);
+        var lienzo  = document.createElement('canvas');
+        lienzo.width  = medidas[0];
+        lienzo.height = medidas[1];
+        lienzo.getContext('2d').drawImage(video, 0, 0, medidas[0], medidas[1]);
+
+        var $boton = $(this).prop('disabled', true);
+
+        lienzo.toBlob(function (blob) {
+            $boton.prop('disabled', false);
+
+            if (!blob || !usarFoto(blob, 'foto capturada')) {
+                $('#camaraAviso').removeClass('d-none').text(
+                    'No se pudo guardar la captura. Usa “Galería o app de cámara”.'
+                );
+                return;
+            }
+            $modalCamara.modal('hide');
+        }, 'image/jpeg', CALIDAD_JPEG);
+    });
+
+    // Salida de emergencia: el selector del sistema, con la foto ya reducida
+    // por el manejador de #entradaCamara.
+    $('#btnCamaraSistema').on('click', function () {
+        $modalCamara.modal('hide');
+        $('#entradaCamara').trigger('click');
+    });
+
+    // Apagar la cámara al cerrar libera el led y deja de consumir batería.
+    $modalCamara.on('hidden.bs.modal', cerrarCamara);
 
     $('#btnQuitarArchivo').on('click', limpiarArchivo);
 
