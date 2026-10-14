@@ -47,6 +47,9 @@ $datosServidor = [
     'Límite propio de la app'   => tamanoLegible(MAX_PDF_BYTES),
     'Conexión cifrada a MySQL'  => DB_SSL ? 'Sí (TLS)' : 'No',
     'Zona horaria'              => date_default_timezone_get(),
+    // Sirve para saber si el navegador está ejecutando la versión desplegada o
+    // una que quedó en su caché: debe coincidir con el ?v= del <script>.
+    'Versión de los assets'     => (string) @filemtime(__DIR__ . '/../assets/js/app.js'),
 ];
 
 /** Dibuja una fila de diagnóstico con su semáforo. */

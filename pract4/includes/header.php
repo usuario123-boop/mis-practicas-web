@@ -1,6 +1,11 @@
 <?php
 // Cabecera: <head>, barra superior y menús. Recibe $vista desde index.php.
 
+// Sin esto el teléfono se queda con la copia en caché de la página, que apunta
+// al app.js anterior: aunque el servidor ya tenga la versión nueva, el móvil
+// sigue ejecutando la vieja. Las páginas son dinámicas, no hay nada que cachear.
+header('Cache-Control: no-store, must-revalidate');
+
 $vista = $vista ?? 'inicio';
 
 // clave => [etiqueta, icono]

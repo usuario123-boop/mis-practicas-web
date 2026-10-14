@@ -145,14 +145,31 @@ $(function () {
     var $modalCamara = $('#modalCamara');
     var flujoCamara  = null;
 
+    // Deja el aviso a la vista y esconde el botón de capturar: sin cámara en la
+    // página no hay nada que disparar, y antes se abría el selector del sistema
+    // sin avisar, de modo que el error de la app de cámara parecía venir de la
+    // aplicación.
+    function sinCamaraEnPagina(motivo) {
+        $('#camaraAviso').removeClass('d-none').text(motivo);
+        $('#btnCamaraDisparar').addClass('d-none');
+    }
+
     function abrirCamara() {
+        $('#camaraAviso').addClass('d-none').text('');
+        $('#btnCamaraDisparar').removeClass('d-none');
+        $modalCamara.modal('show');
+
+        // navigator.mediaDevices no existe fuera de un origen seguro, y los
+        // navegadores incrustados en otras apps (WhatsApp, Instagram, Facebook)
+        // suelen no exponerlo aunque la página venga por HTTPS.
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.DataTransfer) {
-            $('#entradaCamara').trigger('click');
+            sinCamaraEnPagina(
+                'Este navegador no permite usar la cámara dentro de la página. Si abriste el ' +
+                'enlace desde WhatsApp o Instagram, ábrelo en Chrome o Safari; mientras tanto, ' +
+                'usa el botón de abajo para elegir una foto ya tomada.'
+            );
             return;
         }
-
-        $('#camaraAviso').addClass('d-none').text('');
-        $modalCamara.modal('show');
 
         navigator.mediaDevices.getUserMedia({
             audio: false,
@@ -164,10 +181,20 @@ $(function () {
         }).then(function (flujo) {
             flujoCamara = flujo;
             $('#camaraVideo')[0].srcObject = flujo;
-        }).catch(function () {
-            $('#camaraAviso').removeClass('d-none').text(
-                'El navegador no pudo abrir la cámara (permiso denegado o conexión sin HTTPS). ' +
-                'Usa “Galería o app de cámara”.'
+        }).catch(function (fallo) {
+            // El nombre del error dice si falta el permiso, si no hay cámara o si
+            // otra app la tiene ocupada: sin eso no hay forma de saber qué pasó
+            // desde un teléfono ajeno.
+            var motivos = {
+                NotAllowedError:  'No diste permiso de cámara. Revísalo en el candado de la barra de direcciones.',
+                NotFoundError:    'El navegador no encontró ninguna cámara en el dispositivo.',
+                NotReadableError: 'Otra aplicación está usando la cámara. Ciérrala e inténtalo de nuevo.',
+                SecurityError:    'La página no viene por HTTPS, así que el navegador bloquea la cámara.'
+            };
+            var nombre = (fallo && fallo.name) || 'Error';
+            sinCamaraEnPagina(
+                (motivos[nombre] || 'No se pudo abrir la cámara (' + nombre + ').') +
+                ' Usa el botón de abajo para elegir una foto ya tomada.'
             );
         });
     }
@@ -201,7 +228,7 @@ $(function () {
 
             if (!blob || !usarFoto(blob, 'foto capturada')) {
                 $('#camaraAviso').removeClass('d-none').text(
-                    'No se pudo guardar la captura. Usa “Galería o app de cámara”.'
+                    'No se pudo guardar la captura. Usa el botón “Elegir foto del teléfono”.'
                 );
                 return;
             }

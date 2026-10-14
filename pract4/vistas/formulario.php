@@ -132,9 +132,15 @@ if ($esEdicion) {
                         accept="image/*" en lugar de image/jpeg: los teléfonos entregan
                         HEIC o PNG según el modelo y con el filtro estricto algunos ni
                         muestran la foto en el selector. app.js la reconvierte a JPEG.
+
+                        Sin capture="environment" a propósito: ese atributo obliga al
+                        teléfono a pasar por la app de cámara, que es la que falla con
+                        "memoria insuficiente" al entregar la foto a resolución completa.
+                        Sin él aparece el selector normal (galería, archivos, cámara) y
+                        elegir una foto ya tomada nunca provoca ese error.
                     -->
                     <input type="file" class="d-none" id="entradaCamara" name="archivo_camara"
-                           accept="image/*" capture="environment">
+                           accept="image/*">
                     <input type="file" class="d-none" id="entradaArchivo" name="archivo_pdf"
                            accept="application/pdf,image/*">
 
@@ -222,7 +228,7 @@ if ($esEdicion) {
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-light rounded-3" id="btnCamaraSistema">
-                    <i class="bi bi-images me-1"></i>Galería o app de cámara
+                    <i class="bi bi-images me-1"></i>Elegir foto del teléfono
                 </button>
                 <button type="button" class="btn btn-primary rounded-3 fw-bold" id="btnCamaraDisparar">
                     <i class="bi bi-camera-fill me-1"></i>Capturar
